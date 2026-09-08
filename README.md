@@ -89,7 +89,13 @@ With PostgreSQL running, payment orders and purchases are stored in Prisma (`Pay
 | `/library` | Redirects to `/dashboard/tests` |
 | `/account` | Redirects to `/dashboard/profile` |
 
-Dashboard and checkout require a signed-in session.
+Dashboard, checkout, and admin routes are noindex. Public catalog URLs are indexable.
+
+## SEO
+
+Public pages emit a unique title, meta description, canonical URL, Open Graph, and Twitter tags. `/robots.txt` allows the catalog and disallows dashboard, admin, checkout, auth, and in-progress exam routes. `/sitemap.xml` lists home, static guides, published vendors, exams, and practice-test URLs (`/certifications/[vendor]/[exam]` and `/practice-test/[vendor]/[exam]`).
+
+Catalog pages include BreadcrumbList JSON-LD. Exam and practice-test pages add Course/Product and FAQ structured data. Search and paginated filter views canonicalise to the clean catalog URL and are marked noindex so they do not compete with provider and exam pages.
 
 ## Payments API
 

@@ -3,6 +3,7 @@ import { Geist_Mono, Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google"
 import { SiteShell } from "@/components/layout/site-shell";
 import { AppProviders } from "@/components/providers/app-providers";
 import { brand, createMetadata } from "@/lib/seo";
+import { siteUrl } from "@/lib/env";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -26,20 +27,12 @@ export const metadata: Metadata = {
     description: brand.description,
     path: "/",
   }),
-  metadataBase: new URL("http://localhost:43145"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: `${brand.name} · Certification practice tests`,
     template: `%s · ${brand.name}`,
   },
   applicationName: brand.name,
-  keywords: [
-    "certification practice tests",
-    "IT exam prep",
-    "AWS",
-    "Azure",
-    "CompTIA",
-    "Google Cloud",
-  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

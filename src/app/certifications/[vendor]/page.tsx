@@ -10,8 +10,11 @@ import { PageContainer } from "@/components/layout/page-container";
 import { getVendor, listExams, listFilterCategories, listVendors } from "@/lib/catalog/repository";
 import { catalogHref, parseCatalogSearch } from "@/lib/catalog/search-params";
 import { seedVendors } from "@/lib/catalog/seed-catalog";
-import { createMetadata } from "@/lib/seo";
 import { Pagination } from "@/components/catalog/pagination";
+import { vendorStudyCopy } from "@/lib/seo/copy";
+import { createMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { itemListJsonLd } from "@/lib/seo/structured-data";
 
 export async function generateStaticParams() {
   return seedVendors.map((vendor) => ({ vendor: vendor.slug }));
@@ -19,10 +22,13 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ vendor: string }>;
+  searchParams: Promise<{ q?: string; category?: string; sort?: string; page?: string }>;
 }) {
   const { vendor } = await params;
+  const filters = parseCatalogSearch(await searchParams);
   const detail = await getVendor(vendor);
   if (!detail) {
     return createMetadata({
@@ -35,8 +41,9 @@ export async function generateMetadata({
 
   return createMetadata({
     title: `${detail.name} certification practice tests`,
-    description: detail.description,
+    description: `${detail.description} Original timed sittings with scores and explanations.`,
     path: `/certifications/${detail.slug}`,
+    noIndex: Boolean(filters.q) || filters.page > 1,
   });
 }
 
@@ -67,6 +74,12 @@ export default async function VendorPage({
 
   return (
     <PageContainer className="py-10">
+      <JsonLd
+        data={itemListJsonLd(
+          `${detail.name} certification practice exams`,
+          result.items.map((exam) => ({ name: `${exam.code} ${exam.name}`, url: exam.href })),
+        )}
+      />
       <Breadcrumbs
         items={[
           { href: "/", label: "Home" },
@@ -76,9 +89,24 @@ export default async function VendorPage({
       />
       <header className="mt-4 border-b pb-8">
         <Badge variant="secondary">Provider</Badge>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{detail.name}</h1>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          {detail.name} practice tests
+        </h1>
         <p className="mt-3 max-w-3xl text-muted-foreground">{detail.longDescription}</p>
       </header>
+
+      <section className="py-8" aria-labelledby="vendor-study-heading">
+        <h2 id="vendor-study-heading" className="text-xl font-semibold">
+          How to use this catalog
+        </h2>
+        <p className="mt-3 max-w-3xl text-muted-foreground">{vendorStudyCopy(detail)}</p>
+        <h3 className="mt-6 text-base font-semibold">What you unlock</h3>
+        <p className="mt-2 max-w-3xl text-muted-foreground">
+          A purchase on an exam’s practice test unlocks the browser sitting, retakes, and
+          explanation review for that test on your account. Unpublished exams stay out of this
+          page.
+        </p>
+      </section>
 
       <section className="py-8" aria-labelledby="vendor-categories-heading">
         <h2 id="vendor-categories-heading" className="text-xl font-semibold">

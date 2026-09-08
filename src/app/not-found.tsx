@@ -1,5 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
+import { createMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = createMetadata({
+  title: "Page not found",
+  description: "That PrepHarbor URL is not in the catalog.",
+  path: "/404",
+  noIndex: true,
+});
 
 export default function NotFound() {
   return (

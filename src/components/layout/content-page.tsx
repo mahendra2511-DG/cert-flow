@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/page-container";
+import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 import { createMetadata } from "@/lib/seo";
 
 export function ContentPage({
@@ -15,7 +16,8 @@ export function ContentPage({
 }) {
   return (
     <PageContainer className="max-w-3xl py-12">
-      <h1 className="text-3xl font-semibold">{title}</h1>
+      <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: title }]} />
+      <h1 className="mt-4 text-3xl font-semibold">{title}</h1>
       <p className="mt-2 text-muted-foreground">{description}</p>
       <div className="mt-8 space-y-4 text-sm leading-6 text-muted-foreground">{children}</div>
     </PageContainer>

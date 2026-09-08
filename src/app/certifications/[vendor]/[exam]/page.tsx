@@ -16,7 +16,10 @@ import { PageContainer } from "@/components/layout/page-container";
 import { StarRating } from "@/components/catalog/star-rating";
 import { getExam, getRelatedExams } from "@/lib/catalog/repository";
 import { seedExams } from "@/lib/catalog/seed-catalog";
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, practiceTestPath } from "@/lib/seo";
+import { examAudienceCopy, examPrepCopy } from "@/lib/seo/copy";
+import { JsonLd } from "@/components/seo/json-ld";
+import { courseJsonLd, examProductJsonLd, faqJsonLd } from "@/lib/seo/structured-data";
 import { formatInrFromPaise } from "@/lib/utils";
 import { Check } from "lucide-react";
 
@@ -44,8 +47,10 @@ export async function generateMetadata({
   }
 
   return createMetadata({
-    title: detail.seoTitle,
-    description: detail.seoDescription,
+    title: detail.seoTitle || `${detail.code} ${detail.name} practice test`,
+    description:
+      detail.seoDescription ||
+      `Timed ${detail.code} practice on PrepHarbor: ${detail.summary} ${detail.durationMin} minutes, original questions, INR checkout.`,
     path: detail.href,
   });
 }
@@ -63,20 +68,35 @@ export default async function ExamDetailPage({
 
   const related = await getRelatedExams(vendor, exam);
   const checkoutHref = `/checkout/${detail.primaryTestSlug}` as Route;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    name: `${detail.code} ${detail.name}`,
-    description: detail.seoDescription,
-    provider: {
-      "@type": "Organization",
-      name: "PrepHarbor",
+  const practiceHref = practiceTestPath(detail.vendorSlug, detail.examSlug) as Route;
+  const examFaqs = [
+    ...detail.faqs,
+    {
+      question: `How long is the ${detail.code} sitting on PrepHarbor?`,
+      answer: `The published practice test is ${detail.durationMin} minutes with a ${detail.passingScore}% pass mark. Time remaining is shown in the exam chrome and the sitting auto-submits at zero.`,
     },
-  };
+  ];
 
   return (
     <PageContainer className="py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd
+        data={courseJsonLd({
+          name: `${detail.code} ${detail.name}`,
+          description: detail.seoDescription || detail.description,
+          url: detail.href,
+        })}
+      />
+      <JsonLd
+        data={examProductJsonLd({
+          name: `${detail.code} practice test`,
+          description: detail.seoDescription || detail.description,
+          url: detail.href,
+          pricePaise: detail.pricePaise,
+          ratingAverage: detail.ratingAverage,
+          ratingCount: detail.ratingCount,
+        })}
+      />
+      <JsonLd data={faqJsonLd(examFaqs)} />
       <Breadcrumbs
         items={[
           { href: "/", label: "Home" },
@@ -93,7 +113,9 @@ export default async function ExamDetailPage({
             <Badge variant="secondary">{detail.vendorName}</Badge>
             <Badge variant="outline">{detail.level}</Badge>
           </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{detail.name}</h1>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+            {detail.code} {detail.name} practice
+          </h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">{detail.description}</p>
           <div className="mt-4">
             <StarRating value={detail.ratingAverage} count={detail.ratingCount} />
@@ -118,15 +140,51 @@ export default async function ExamDetailPage({
             </div>
           </dl>
 
+          <section className="mt-12" aria-labelledby="audience-heading">
+            <h2 id="audience-heading" className="text-2xl font-semibold">
+              Who this practice is for
+            </h2>
+            <p className="mt-3 text-muted-foreground">{examAudienceCopy(detail)}</p>
+          </section>
+
           <section className="mt-12" aria-labelledby="learn-heading">
             <h2 id="learn-heading" className="text-2xl font-semibold">
-              What you’ll learn
+              What you’ll practice
             </h2>
+            <p className="mt-3 text-muted-foreground">{examPrepCopy(detail)}</p>
             <ul className="mt-4 space-y-3">
               {detail.outcomes.map((outcome) => (
                 <li key={outcome} className="flex gap-3 text-sm">
                   <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-                  {outcome}
+                  <span>
+                    <span className="font-medium text-foreground">{outcome}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="mt-12" aria-labelledby="tests-heading">
+            <h2 id="tests-heading" className="text-2xl font-semibold">
+              Practice tests
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Open a test for the timed format, then check out in INR. Access stays on the account
+              that paid.
+            </p>
+            <ul className="mt-4 space-y-3">
+              {detail.tests.map((test) => (
+                <li key={test.slug} className="rounded-2xl border p-4">
+                  <h3 className="font-semibold">
+                    <Link href={practiceHref} className="hover:underline">
+                      {test.title}
+                    </Link>
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{test.summary}</p>
+                  <p className="mt-2 text-sm">
+                    {test.questionCount} questions · {test.timeLimitMin} min ·{" "}
+                    {formatInrFromPaise(test.pricePaise)}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -157,7 +215,7 @@ export default async function ExamDetailPage({
               FAQ
             </h2>
             <Accordion className="mt-4">
-              {detail.faqs.map((item) => (
+              {examFaqs.map((item) => (
                 <AccordionItem key={item.question} value={item.question}>
                   <AccordionTrigger>{item.question}</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">{item.answer}</AccordionContent>
@@ -179,7 +237,7 @@ export default async function ExamDetailPage({
               <p className="text-3xl font-semibold">{formatInrFromPaise(detail.pricePaise)}</p>
               <Button
                 nativeButton={false}
-                render={<Link href={`/practice-test/${detail.vendorSlug}/${detail.examSlug}` as Route} />}
+                render={<Link href={practiceHref} />}
                 className="w-full"
               >
                 Start / view practice test

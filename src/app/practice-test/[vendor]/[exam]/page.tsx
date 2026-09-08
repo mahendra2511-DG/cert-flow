@@ -16,7 +16,10 @@ import { getExam } from "@/lib/catalog/repository";
 import { seedExams } from "@/lib/catalog/seed-catalog";
 import { findExamContext } from "@/lib/exam/engine";
 import { getQuestionsForTest } from "@/lib/exam/questions";
-import { createMetadata } from "@/lib/seo";
+import { createMetadata, practiceTestPath } from "@/lib/seo";
+import { practiceSittingCopy } from "@/lib/seo/copy";
+import { JsonLd } from "@/components/seo/json-ld";
+import { examProductJsonLd, faqJsonLd } from "@/lib/seo/structured-data";
 import { formatInrFromPaise } from "@/lib/utils";
 import { Flag, ListChecks, Shield, Clock } from "lucide-react";
 import { auth } from "@/auth";
@@ -42,9 +45,9 @@ export async function generateMetadata({
     });
   }
   return createMetadata({
-    title: `${detail.code} practice test`,
-    description: detail.seoDescription,
-    path: `/practice-test/${vendor}/${exam}`,
+    title: `${detail.code} timed practice test`,
+    description: `Sit the ${detail.code} ${detail.name} practice test on PrepHarbor: timed questions, a score, and explanations after purchase.`,
+    path: practiceTestPath(vendor, exam),
   });
 }
 
@@ -70,14 +73,42 @@ export default async function PracticeTestDetailPage({
   const questionCount = getQuestionsForTest(context.test.slug).length;
   const startHref = `/practice-test/${vendor}/${exam}/start` as Route;
   const checkoutHref = `/checkout/${context.test.slug}` as Route;
+  const examHref = `/certifications/${vendor}/${exam}` as Route;
+  const sittingCopy = practiceSittingCopy({
+    code: detail.code,
+    vendorName: detail.vendorName,
+    timeLimitMin: context.test.timeLimitMin,
+    passingScore: context.test.passingScore,
+    questionCount,
+  });
+  const faqs = [
+    ...detail.faqs,
+    {
+      question: "When should I start the timer?",
+      answer:
+        "Open the start page only when you can sit the full duration. The clock begins when the attempt is created and auto-submits at zero.",
+    },
+  ];
   const session = await auth();
   const owned = session?.user?.id ? await userOwnsExam(session.user.id, vendor, exam) : false;
 
   return (
     <PageContainer className="py-10">
+      <JsonLd
+        data={examProductJsonLd({
+          name: context.test.title,
+          description: context.test.description,
+          url: practiceTestPath(vendor, exam),
+          pricePaise: context.test.pricePaise,
+          ratingAverage: context.test.ratingAverage,
+          ratingCount: context.test.ratingCount,
+        })}
+      />
+      <JsonLd data={faqJsonLd(faqs)} />
       <Breadcrumbs
         items={[
           { href: "/", label: "Home" },
+          { href: "/certifications", label: "Certifications" },
           { href: `/certifications/${vendor}`, label: detail.vendorName },
           { href: `/certifications/${vendor}/${exam}`, label: detail.code },
           { label: "Practice test" },
@@ -92,6 +123,7 @@ export default async function PracticeTestDetailPage({
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{context.test.title}</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">{context.test.description}</p>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{sittingCopy}</p>
           <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Info label="Questions" value={String(questionCount)} />
             <Info label="Time limit" value={`${context.test.timeLimitMin} min`} />
@@ -101,17 +133,32 @@ export default async function PracticeTestDetailPage({
 
           <section className="mt-12" aria-labelledby="features-heading">
             <h2 id="features-heading" className="text-2xl font-semibold">
-              Features
+              How the sitting works
             </h2>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {features.map((feature) => (
                 <li key={feature.title} className="rounded-xl border bg-card p-4">
                   <feature.icon className="size-4 text-primary" aria-hidden="true" />
-                  <p className="mt-2 font-medium">{feature.title}</p>
+                  <h3 className="mt-2 font-medium">{feature.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{feature.body}</p>
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="mt-12" aria-labelledby="after-heading">
+            <h2 id="after-heading" className="text-2xl font-semibold">
+              After you submit
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              You receive a score against the {context.test.passingScore}% pass mark, a count of
+              correct and missed items, and explanation review for this attempt. Retakes stay on
+              the purchasing account. Read the{" "}
+              <Link href={examHref} className="font-medium text-foreground underline-offset-4 hover:underline">
+                {detail.code} exam page
+              </Link>{" "}
+              for format and related certifications.
+            </p>
           </section>
 
           <section className="mt-12" aria-labelledby="pt-faq-heading">
@@ -119,7 +166,7 @@ export default async function PracticeTestDetailPage({
               FAQ
             </h2>
             <Accordion className="mt-4">
-              {detail.faqs.map((item) => (
+              {faqs.map((item) => (
                 <AccordionItem key={item.question} value={item.question}>
                   <AccordionTrigger>{item.question}</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">{item.answer}</AccordionContent>
