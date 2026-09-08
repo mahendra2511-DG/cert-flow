@@ -1,22 +1,14 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { authConfig } from "@/auth.config";
 import { prisma } from "@/lib/db";
-
-const demoUser = {
-  id: "demo-user",
-  name: "Demo Learner",
-  email: "demo@prepharbor.test",
-};
+import { findUserByEmail, verifyPassword } from "@/lib/auth/user-store";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: prisma ? PrismaAdapter(prisma) : undefined,
-  session: { strategy: "jwt" },
-  trustHost: true,
   secret: process.env.AUTH_SECRET ?? "prepharbor-dev-secret-change-me",
-  pages: {
-    signIn: "/sign-in",
-  },
   providers: [
     Credentials({
       name: "Email",
@@ -27,27 +19,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").toLowerCase().trim();
         const password = String(credentials?.password ?? "");
-
-        if (email === demoUser.email && password === "demo") {
-          return demoUser;
+        if (!email || !password) {
+          return null;
         }
-
-        return null;
+        const user = await findUserByEmail(email);
+        if (!user) {
+          return null;
+        }
+        const ok = await verifyPassword(user, password);
+        if (!ok) {
+          return null;
+        }
+        return { id: user.id, email: user.email, name: user.name };
       },
     }),
   ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
-      }
-      return session;
-    },
-  },
 });

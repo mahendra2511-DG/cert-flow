@@ -63,20 +63,31 @@ export async function getAttempt(id: string) {
   return null;
 }
 
-export async function listAttemptsForExam(userId: string | null, vendorSlug: string, examSlug: string) {
-  const all = [...mem().values()];
-  if (all.length === 0) {
-    const fileItems = await readFileStore();
-    for (const item of fileItems) {
-      mem().set(item.id, item);
-    }
+async function hydrate() {
+  if (mem().size > 0) {
+    return;
   }
+  const fileItems = await readFileStore();
+  for (const item of fileItems) {
+    mem().set(item.id, item);
+  }
+}
+
+export async function listAttemptsForExam(userId: string | null, vendorSlug: string, examSlug: string) {
+  await hydrate();
   return [...mem().values()].filter(
     (item) =>
       item.vendorSlug === vendorSlug &&
       item.examSlug === examSlug &&
       (userId ? item.userId === userId : true),
   );
+}
+
+export async function listAttemptsForUser(userId: string) {
+  await hydrate();
+  return [...mem().values()]
+    .filter((item) => item.userId === userId)
+    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
 }
 
 function toPrismaCreate(attempt: AttemptRecord) {

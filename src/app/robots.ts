@@ -8,6 +8,11 @@ export default function robots() {
       disallow: [
         "/account",
         "/library",
+        "/dashboard",
+        "/sign-in",
+        "/sign-up",
+        "/forgot-password",
+        "/reset-password",
         "/exam",
         "/results",
         "/checkout",

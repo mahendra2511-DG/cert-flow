@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Route } from "next";
+import { signOut, useSession } from "next-auth/react";
 import { Menu } from "lucide-react";
 import { BrandWordmark, LogoMark } from "@/components/brand/logo";
 import { CatalogSearch } from "@/components/catalog/search-form";
@@ -14,20 +16,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { route } from "@/lib/routes";
 
 export const primaryNav = [
   { href: "/certifications", label: "Certifications" },
   { href: "/practice-tests", label: "Practice Tests" },
 ] as const;
 
-const mobileExtraNav = [
-  { href: "/library", label: "My library" },
-  { href: "/account", label: "Account" },
-  { href: "/about", label: "About" },
-] as const;
-
 export function SiteHeader() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const signedIn = status === "authenticated" && Boolean(session?.user);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/85 backdrop-blur-md">
@@ -62,12 +61,32 @@ export function SiteHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-2">
-          <Button nativeButton={false} render={<Link href="/sign-in" />} variant="ghost">
-            Log in
-          </Button>
-          <Button nativeButton={false} render={<Link href="/sign-up" />} className="hidden sm:inline-flex">
-            Sign up
-          </Button>
+          {status === "loading" ? (
+            <div className="hidden h-8 w-24 animate-pulse rounded-lg bg-muted sm:block" />
+          ) : signedIn ? (
+            <>
+              <Button nativeButton={false} render={<Link href={route("/dashboard")} />} variant="ghost">
+                Dashboard
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="hidden sm:inline-flex"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button nativeButton={false} render={<Link href="/sign-in" />} variant="ghost">
+                Log in
+              </Button>
+              <Button nativeButton={false} render={<Link href="/sign-up" />} className="hidden sm:inline-flex">
+                Sign up
+              </Button>
+            </>
+          )}
 
           <Sheet>
             <SheetTrigger
@@ -82,10 +101,21 @@ export function SiteHeader() {
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 px-4 pb-6" aria-label="Mobile">
-                {[...primaryNav, ...mobileExtraNav].map((item) => (
+                {[
+                  ...primaryNav,
+                  ...(signedIn
+                    ? [
+                        { href: "/dashboard", label: "Dashboard" },
+                        { href: "/dashboard/tests", label: "My tests" },
+                        { href: "/dashboard/profile", label: "Profile" },
+                      ]
+                    : [
+                        { href: "/about", label: "About" },
+                      ]),
+                ].map((item) => (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={item.href as Route}
                     className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
                   >
                     {item.label}
@@ -93,17 +123,30 @@ export function SiteHeader() {
                 ))}
                 <div className="mt-4 space-y-2">
                   <CatalogSearch id="mobile-search" />
-                  <Button nativeButton={false} render={<Link href="/sign-up" />} className="w-full">
-                    Sign up
-                  </Button>
-                  <Button
-                    nativeButton={false}
-                    render={<Link href="/sign-in" />}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Log in
-                  </Button>
+                  {signedIn ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                    >
+                      Log out
+                    </Button>
+                  ) : (
+                    <>
+                      <Button nativeButton={false} render={<Link href="/sign-up" />} className="w-full">
+                        Sign up
+                      </Button>
+                      <Button
+                        nativeButton={false}
+                        render={<Link href="/sign-in" />}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Log in
+                      </Button>
+                    </>
+                  )}
                 </div>
               </nav>
             </SheetContent>
