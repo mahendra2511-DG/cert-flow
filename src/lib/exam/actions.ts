@@ -2,9 +2,22 @@
 
 import { auth } from "@/auth";
 import { startAttempt, saveSelection, submitAttempt, toggleFlag, findExamContext } from "@/lib/exam/engine";
+import { getAttempt } from "@/lib/exam/store";
 import { userOwnsExam } from "@/lib/commerce/checkout";
 import { redirect } from "next/navigation";
 import { route } from "@/lib/routes";
+
+async function requireAttemptOwner(attemptId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("UNAUTHORIZED");
+  }
+  const attempt = await getAttempt(attemptId);
+  if (!attempt || attempt.userId !== session.user.id) {
+    throw new Error("FORBIDDEN");
+  }
+  return { userId: session.user.id, attempt };
+}
 
 export async function startPracticeTestAction(vendor: string, exam: string) {
   const session = await auth();
@@ -27,14 +40,17 @@ export async function startPracticeTestAction(vendor: string, exam: string) {
 }
 
 export async function saveAnswerAction(attemptId: string, questionId: string, selectedOptionIds: string[]) {
+  await requireAttemptOwner(attemptId);
   await saveSelection(attemptId, questionId, selectedOptionIds);
 }
 
 export async function toggleFlagAction(attemptId: string, questionId: string) {
+  await requireAttemptOwner(attemptId);
   await toggleFlag(attemptId, questionId);
 }
 
 export async function submitAttemptAction(vendor: string, exam: string, attemptId: string) {
+  await requireAttemptOwner(attemptId);
   await submitAttempt(attemptId);
   redirect(`/practice-test/${vendor}/${exam}/result/${attemptId}`);
 }

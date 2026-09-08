@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteUrl } from "@/lib/env";
+import { siteUrl as publicSiteUrl } from "@/lib/site-url";
 
 export const brand = {
   name: "PrepHarbor",
@@ -13,7 +13,7 @@ export function absoluteUrl(path = "/") {
   if (normalized.startsWith("http")) {
     return normalized;
   }
-  return new URL(normalized, `${siteUrl()}/`).toString();
+  return new URL(normalized, `${publicSiteUrl()}/`).toString();
 }
 
 export function truncateMeta(value: string, max = 158) {

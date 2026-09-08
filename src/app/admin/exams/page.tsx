@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { listExamsAdmin, listVendorsAdmin } from "@/lib/admin/catalog-store";
 import { deleteExamAction, toggleExamAction } from "@/lib/admin/actions";
 import { formatInr } from "@/lib/format";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { route } from "@/lib/routes";
 
 export default function AdminExamsPage() {
@@ -80,13 +81,18 @@ export default function AdminExamsPage() {
                           {exam.isPublished ? "Unpublish" : "Publish"}
                         </Button>
                       </form>
-                      <form action={deleteExamAction}>
+                      <ConfirmForm
+                        action={deleteExamAction}
+                        title="Delete this exam?"
+                        description="Practice tests and questions for this exam will be removed from the live catalog."
+                        confirmLabel="Delete"
+                      >
                         <input type="hidden" name="vendorSlug" value={exam.vendorSlug} />
                         <input type="hidden" name="slug" value={exam.slug} />
                         <Button type="submit" size="sm" variant="destructive">
                           Delete
                         </Button>
-                      </form>
+                      </ConfirmForm>
                     </div>
                   </td>
                 </tr>

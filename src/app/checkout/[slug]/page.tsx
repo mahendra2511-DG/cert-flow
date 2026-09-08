@@ -90,8 +90,8 @@ export default async function CheckoutPage({
             />
           ) : (
             <p className="rounded-xl border bg-muted/40 px-3 py-3 text-sm">
-              Set <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> on the server
-              (Razorpay test keys first). Secrets are never sent to the browser.
+              Razorpay keys are not configured on the server. Checkout stays locked in production until
+              the public key id and server secret are set. Secrets are never sent to the browser.
             </p>
           )}
           <Button

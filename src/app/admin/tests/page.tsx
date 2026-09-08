@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { getLiveQuestions, listTestsAdmin } from "@/lib/admin/catalog-store";
 import { deleteTestAction, toggleTestAction } from "@/lib/admin/actions";
 import { formatInr } from "@/lib/format";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { route } from "@/lib/routes";
 
 export default function AdminTestsPage() {
@@ -59,12 +60,17 @@ export default function AdminTestsPage() {
                     {test.isPublished ? "Unpublish" : "Publish"}
                   </Button>
                 </form>
-                <form action={deleteTestAction}>
+                <ConfirmForm
+                  action={deleteTestAction}
+                  title="Delete this practice test?"
+                  description="Questions on this sitting will be removed from the live catalog."
+                  confirmLabel="Delete"
+                >
                   <input type="hidden" name="slug" value={test.slug} />
                   <Button type="submit" size="sm" variant="destructive">
                     Delete
                   </Button>
-                </form>
+                </ConfirmForm>
               </div>
             </div>
           </li>

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listQuestionsAdmin, listTestsAdmin } from "@/lib/admin/catalog-store";
 import { deleteQuestionAction } from "@/lib/admin/actions";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { route } from "@/lib/routes";
 
 export default async function AdminQuestionsPage({
@@ -86,12 +87,17 @@ export default async function AdminQuestionsPage({
                 >
                   Edit
                 </Button>
-                <form action={deleteQuestionAction}>
+                <ConfirmForm
+                  action={deleteQuestionAction}
+                  title="Delete this question?"
+                  description="This item will be removed from the practice test immediately."
+                  confirmLabel="Delete"
+                >
                   <input type="hidden" name="id" value={question.id} />
                   <Button type="submit" size="sm" variant="destructive">
                     Delete
                   </Button>
-                </form>
+                </ConfirmForm>
               </div>
             </div>
           </li>

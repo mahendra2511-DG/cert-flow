@@ -42,6 +42,9 @@ export function usesHostedRazorpay() {
 }
 
 function simulationSecret() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Simulated payments cannot run in production.");
+  }
   return env.AUTH_SECRET ?? "prepharbor-dev-secret-change-me";
 }
 

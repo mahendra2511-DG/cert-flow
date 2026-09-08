@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ImportIssue } from "@/lib/admin/import";
+import { toast } from "@/components/ui/toaster";
 
 type TestOption = { slug: string; title: string; examCode: string };
 
@@ -83,6 +84,7 @@ export function ImportForm({ tests }: { tests: TestOption[] }) {
     const json = (await response.json()) as Preview;
     if (!response.ok) {
       setError(json.error ?? "Import failed.");
+      toast(json.error ?? "Import failed.", { variant: "error" });
       setPreview(json.validCount !== undefined ? json : preview);
       setStage("idle");
       return;
@@ -90,6 +92,7 @@ export function ImportForm({ tests }: { tests: TestOption[] }) {
     setPreview(json);
     setProgress(100);
     setStage("done");
+    toast(`Imported ${json.importedCount} questions`, { variant: "success" });
   }
 
   function loadSample() {

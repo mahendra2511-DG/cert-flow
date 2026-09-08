@@ -5,10 +5,20 @@ import { authConfig } from "@/auth.config";
 import { prisma } from "@/lib/db";
 import { findUserByEmail, verifyPassword } from "@/lib/auth/user-store";
 
+function authSecret() {
+  if (process.env.AUTH_SECRET) return process.env.AUTH_SECRET;
+  if (process.env.NODE_ENV !== "production") return "prepharbor-dev-secret-change-me";
+  // next build sets NODE_ENV=production; a dummy secret is only for compile, never for runtime.
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return "build-placeholder-not-for-runtime";
+  }
+  throw new Error("AUTH_SECRET is required in production.");
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: prisma ? PrismaAdapter(prisma) : undefined,
-  secret: process.env.AUTH_SECRET ?? "prepharbor-dev-secret-change-me",
+  secret: authSecret(),
   providers: [
     Credentials({
       name: "Email",

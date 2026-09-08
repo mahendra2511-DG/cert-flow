@@ -75,11 +75,11 @@ async function hydrate() {
 
 export async function listAttemptsForExam(userId: string | null, vendorSlug: string, examSlug: string) {
   await hydrate();
+  if (!userId) {
+    return [];
+  }
   return [...mem().values()].filter(
-    (item) =>
-      item.vendorSlug === vendorSlug &&
-      item.examSlug === examSlug &&
-      (userId ? item.userId === userId : true),
+    (item) => item.vendorSlug === vendorSlug && item.examSlug === examSlug && item.userId === userId,
   );
 }
 

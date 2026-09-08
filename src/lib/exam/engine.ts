@@ -31,7 +31,7 @@ export async function findActiveAttempt(userId: string | null, vendorSlug: strin
 export async function startAttempt(input: {
   vendorSlug: string;
   examSlug: string;
-  userId: string | null;
+  userId: string;
 }): Promise<AttemptRecord> {
   const context = findExamContext(input.vendorSlug, input.examSlug);
   if (!context) {
@@ -78,9 +78,9 @@ export async function startAttempt(input: {
   return attempt;
 }
 
-export async function getSnapshot(attemptId: string): Promise<ExamSnapshot | null> {
+export async function getSnapshot(attemptId: string, userId: string): Promise<ExamSnapshot | null> {
   const attempt = await maybeExpire(attemptId);
-  if (!attempt) {
+  if (!attempt || !userId || attempt.userId !== userId) {
     return null;
   }
   const questions = getLiveQuestions(attempt.practiceTestId).map(toPublicQuestion);
@@ -143,10 +143,13 @@ export async function submitAttempt(attemptId: string): Promise<AttemptResult> {
   return toResult(next);
 }
 
-export async function getResult(attemptId: string): Promise<AttemptResult | null> {
+export async function getResult(attemptId: string, userId: string): Promise<AttemptResult | null> {
   const attempt = await maybeExpire(attemptId);
-  if (!attempt || attempt.status !== "SUBMITTED") {
-    return attempt ? toResult(attempt) : null;
+  if (!attempt || !userId || attempt.userId !== userId) {
+    return null;
+  }
+  if (attempt.status !== "SUBMITTED") {
+    return toResult(attempt);
   }
   return toResult(attempt);
 }

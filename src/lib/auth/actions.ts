@@ -11,8 +11,12 @@ import {
   updateUserSettings,
   verifyPassword,
 } from "@/lib/auth/user-store";
-import { siteUrl } from "@/lib/env";
+import { siteUrl } from "@/lib/site-url";
 import { AuthError } from "next-auth";
+
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 function formString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -23,7 +27,7 @@ export async function signUpAction(formData: FormData) {
   const email = formString(formData, "email").toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  if (!name || !email || password.length < 8) {
+  if (!name || !isEmail(email) || password.length < 8) {
     return { error: "Enter your name, a valid email, and a password of at least 8 characters." };
   }
 

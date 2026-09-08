@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listVendorsAdmin } from "@/lib/admin/catalog-store";
 import { deleteCertificationAction, toggleCertificationAction } from "@/lib/admin/actions";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { route } from "@/lib/routes";
 
 export default function AdminCertificationsPage() {
@@ -56,12 +57,17 @@ export default function AdminCertificationsPage() {
                     {vendor.isPublished ? "Unpublish" : "Publish"}
                   </Button>
                 </form>
-                <form action={deleteCertificationAction}>
+                <ConfirmForm
+                  action={deleteCertificationAction}
+                  title="Delete this certification?"
+                  description="Exams and questions under this vendor will be removed from the live catalog."
+                  confirmLabel="Delete"
+                >
                   <input type="hidden" name="slug" value={vendor.slug} />
                   <Button type="submit" size="sm" variant="destructive">
                     Delete
                   </Button>
-                </form>
+                </ConfirmForm>
               </div>
             </div>
           </li>

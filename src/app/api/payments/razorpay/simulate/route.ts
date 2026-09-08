@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { env } from "@/lib/env";
+import { jsonError, jsonOk, readJsonBody } from "@/lib/http";
 import { createSimulatedPayment, usesHostedRazorpay } from "@/lib/payments/razorpay";
 import { fulfillPaidOrder } from "@/lib/commerce/checkout";
 
@@ -11,24 +12,19 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+    return jsonError("Sign in required.", 401);
   }
-  if (usesHostedRazorpay()) {
-    return NextResponse.json(
-      { error: "Simulated checkout is disabled while Razorpay keys are configured." },
-      { status: 400 },
-    );
+  if (env.NODE_ENV === "production" || usesHostedRazorpay()) {
+    return jsonError("Simulated checkout is disabled.", 403);
   }
 
-  let json: unknown;
-  try {
-    json = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  const body = await readJsonBody(request);
+  if (!body.ok) {
+    return body.response;
   }
-  const parsed = bodySchema.safeParse(json);
+  const parsed = bodySchema.safeParse(body.value);
   if (!parsed.success) {
-    return NextResponse.json({ error: "razorpay_order_id is required." }, { status: 400 });
+    return jsonError("razorpay_order_id is required.", 400);
   }
 
   const simulated = createSimulatedPayment(parsed.data.razorpay_order_id);
@@ -41,9 +37,9 @@ export async function POST(request: Request) {
 
   if ("error" in result) {
     if (result.error === "FORBIDDEN") {
-      return NextResponse.json({ error: "This order belongs to another account." }, { status: 403 });
+      return jsonError("This order belongs to another account.", 403);
     }
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
+    return jsonError("Order not found.", 404);
   }
 
   const item = result.order.items[0];
@@ -51,8 +47,7 @@ export async function POST(request: Request) {
     ? `/practice-test/${item.vendorSlug}/${item.examSlug}/start?purchased=1`
     : "/dashboard/tests";
 
-  return NextResponse.json({
-    ok: true,
+  return jsonOk({
     orderId: result.order.id,
     status: result.order.status,
     redirectTo,

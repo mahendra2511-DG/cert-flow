@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { PageContainer } from "@/components/layout/page-container";
 import { ResultReview, ResultSummary } from "@/components/exam/result-views";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/auth";
 import { findExamContext, getResult } from "@/lib/exam/engine";
 import { createMetadata } from "@/lib/seo";
 
@@ -23,7 +24,11 @@ export default async function PracticeResultPage({
   if (!findExamContext(vendor, exam)) {
     notFound();
   }
-  const result = await getResult(attemptId);
+  const session = await auth();
+  if (!session?.user?.id) {
+    notFound();
+  }
+  const result = await getResult(attemptId, session.user.id);
   if (!result || result.attempt.vendorSlug !== vendor || result.attempt.examSlug !== exam) {
     notFound();
   }

@@ -25,13 +25,17 @@ export default async function PracticeQuestionPage({
   }
 
   const session = await auth();
+  if (!session?.user?.id) {
+    redirect(`/sign-in?callbackUrl=/practice-test/${vendor}/${exam}/question/${questionNumber}`);
+  }
+
   const attemptId =
-    attemptIdParam ?? (await findActiveAttempt(session?.user?.id ?? "guest", vendor, exam))?.id;
+    attemptIdParam ?? (await findActiveAttempt(session.user.id, vendor, exam))?.id;
   if (!attemptId) {
     redirect(`/practice-test/${vendor}/${exam}/start`);
   }
 
-  const snapshot = await getSnapshot(attemptId);
+  const snapshot = await getSnapshot(attemptId, session.user.id);
   if (!snapshot) {
     notFound();
   }

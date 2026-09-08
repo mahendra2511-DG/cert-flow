@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatInrFromPaise } from "@/lib/utils";
+import { toast } from "@/components/ui/toaster";
 import { route } from "@/lib/routes";
 
 type CheckoutPayload = {
@@ -120,6 +121,7 @@ export function CheckoutPayButton({
     if (!response.ok) {
       throw new Error(data.error ?? "Payment verification failed.");
     }
+    toast("Payment verified", { description: "The practice test is unlocked.", variant: "success" });
     router.push(route(data.redirectTo ?? "/dashboard/tests"));
     router.refresh();
   }
@@ -152,6 +154,7 @@ export function CheckoutPayButton({
         handler: (response) => {
           void verify(response).catch((err: Error) => {
             setError(err.message);
+            toast(err.message, { variant: "error" });
             setPending(false);
           });
         },
@@ -164,6 +167,7 @@ export function CheckoutPayButton({
             });
             setPending(false);
             setMessage("Payment was cancelled. You have not been charged, and the test is still locked.");
+            toast("Payment cancelled", { description: "The test is still locked.", variant: "info" });
           },
         },
       });
@@ -202,6 +206,7 @@ export function CheckoutPayButton({
       if (!response.ok) {
         throw new Error(data.error ?? "Simulated payment failed.");
       }
+      toast("Payment verified", { description: "The practice test is unlocked.", variant: "success" });
       router.push(route(data.redirectTo ?? "/dashboard/tests"));
       router.refresh();
     } catch (err) {
@@ -227,8 +232,7 @@ export function CheckoutPayButton({
       {!hostedCheckout ? (
         <p className="text-xs text-muted-foreground">
           Razorpay test keys are not set. This button runs the same create → verify → unlock path on
-          the server without exposing a secret. Add <code>RAZORPAY_KEY_ID</code> and{" "}
-          <code>RAZORPAY_KEY_SECRET</code> from the Razorpay test dashboard to open hosted Checkout.
+          the server without exposing a secret. Add Razorpay test keys on the server to open hosted Checkout.
         </p>
       ) : (
         <p className="text-xs text-muted-foreground">

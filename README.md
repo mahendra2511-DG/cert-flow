@@ -1,6 +1,6 @@
 # PrepHarbor
 
-PrepHarbor is an original certification practice-test marketplace. Learners browse exams by provider, open a certification, inspect a practice test, purchase access in INR, sit the exam in the browser, and review explanations.
+PrepHarbor is a certification practice-test marketplace. Learners browse exams by provider, open a certification, inspect a practice test, purchase access in INR, sit a timed exam in the browser, and review explanations.
 
 The product is independent. It is not affiliated with any certification vendor and does not copy third-party branding, assets, or proprietary exam content.
 
@@ -8,52 +8,115 @@ The product is independent. It is not affiliated with any certification vendor a
 
 - Next.js (App Router) and TypeScript
 - Tailwind CSS and shadcn/ui
-- PostgreSQL with Prisma (optional)
+- PostgreSQL with Prisma (optional locally; required for durable production data)
 - Auth.js (NextAuth v5) with credentials, JWT sessions, and protected routes
-- Razorpay for Indian payments (test keys first; secret stays on the server)
+- Razorpay for Indian payments (test keys first; the secret stays on the server)
 
-## Run locally
+---
+
+## 1. Project structure
+
+```
+prisma/                     Schema, migrations, seed
+docker-compose.yml          Local PostgreSQL
+src/app/                    App Router pages, loading/error/404, API routes
+src/app/api/payments/       Razorpay order, verify, fail, cancel, simulate, webhook
+src/app/api/admin/          Admin-only question import
+src/auth.ts                 Auth.js (Node: credentials + bcrypt). Never import from Edge.
+src/auth.config.ts          Edge-safe session callbacks and route protection
+src/proxy.ts                Auth.js gate for dashboard, checkout, admin, /api/admin
+src/components/             Layout, catalog, exam, dashboard, admin, payments, shadcn
+src/lib/admin/              Live catalog overlay, import validation, admin actions
+src/lib/auth/               User store, password reset, session helpers
+src/lib/catalog/            Seeded catalog
+src/lib/commerce/           Orders, purchases, unlocks
+src/lib/exam/               Timed engine, snapshots, scoring
+src/lib/payments/           Razorpay client, HMAC verify (secret never returned)
+src/lib/env.ts              Server-only env parse (throws if imported in the browser)
+src/lib/site-url.ts         Public site URL from NEXT_PUBLIC_APP_URL only
+src/lib/http.ts             JSON API success/error helpers
+src/lib/seo.ts              Metadata, robots, sitemap helpers
+```
+
+Public catalog URLs are indexable. Dashboard, checkout, admin, auth, and in-progress exam routes are noindex.
+
+## 2. Environment variables required
+
+Copy `.env.example` to `.env.local`. Generate `AUTH_SECRET` with `openssl rand -base64 32`.
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_APP_URL` | Yes | Canonical origin (no trailing slash). Safe to expose. |
+| `AUTH_SECRET` | Yes in production | Session signing. Never send to the client. |
+| `AUTH_URL` | Recommended | Same origin as the app (Auth.js). |
+| `DATABASE_URL` | Production yes | PostgreSQL. Locally optional; without it, users/orders/attempts/admin overlays persist under `/tmp` (ephemeral on serverless). |
+| `RAZORPAY_KEY_ID` | Production payments | Public key id. The browser receives it only after a signed-in order is created. |
+| `RAZORPAY_KEY_SECRET` | Production payments | Server-only. Used to create orders and verify signatures. Never `NEXT_PUBLIC_`. |
+| `RAZORPAY_WEBHOOK_SECRET` | Optional | Required only if you enable `/api/payments/razorpay/webhook`. |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional | Leave empty for credentials-only sign-in. |
+
+Do not put Razorpay, Auth, or database secrets in `NEXT_PUBLIC_*` variables.
+
+Without Razorpay keys, **non-production** uses a local simulated checkout that still creates an order, verifies a server-side signature, writes the purchase, and unlocks the test. Simulated checkout is disabled in production.
+
+## 3. Database setup commands
+
+PostgreSQL is optional for local UI work. For a real database:
+
+```bash
+docker compose up -d
+npx prisma migrate dev
+```
+
+`npm run build` already runs `prisma generate`. Use `npm run db:push` only when you intentionally skip migrations.
+
+## 4. Seed commands
+
+```bash
+npm run db:seed
+```
+
+If `DATABASE_URL` is unset, the seed script exits after noting that the in-repo catalog (`src/lib/catalog/seed-catalog.ts`) still powers the UI.
+
+Demo learner: `demo@prepharbor.test` / `demo` (purchases and attempts; cannot open `/admin`).
+
+Demo admin: `admin@prepharbor.test` / `adminadmin`. Learners who hit `/admin` are sent to `/forbidden`. `/api/admin/*` returns 403.
+
+Password reset does not send email here. Request a link from `/forgot-password` and use the demo inbox URL on the success screen.
+
+## 5. Development command
 
 ```bash
 npm install
 cp .env.example .env.local
-```
-
-Generate an `AUTH_SECRET`:
-
-```bash
-openssl rand -base64 32
-```
-
-Start PostgreSQL (optional — catalog, auth, and the dashboard work without it):
-
-```bash
-docker compose up -d
-npx prisma migrate dev --name init
-npm run db:seed
-```
-
-Then:
-
-```bash
+# set AUTH_SECRET in .env.local
 npm run dev
 ```
 
 The app listens on [http://localhost:43145](http://localhost:43145).
 
-Demo sign-in: `demo@prepharbor.test` / `demo`. That account includes sample purchases, orders, and attempts. It cannot open `/admin`.
+## 6. Production build command
 
-Admin sign-in: `admin@prepharbor.test` / `adminadmin`. Staff routes and `/api/admin/*` require this role. Learners who visit `/admin` are sent to `/forbidden`.
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm start
+```
 
-Password reset does not send email in this environment. Request a link from `/forgot-password` and use the demo inbox URL on the success screen.
+`npm start` serves the production build on port 43145.
 
-## Environment variables
+## 7. Deployment instructions
 
-See `.env.example`. Catalog, sign-up, login, and dashboard data persist to `/tmp` when `DATABASE_URL` is unset.
+1. Provision PostgreSQL and set `DATABASE_URL`.
+2. Run migrations against that database (`npx prisma migrate deploy`).
+3. Set `AUTH_SECRET` (long random string) and `NEXT_PUBLIC_APP_URL` / `AUTH_URL` to the public HTTPS origin.
+4. Set Razorpay **test** keys first (`rzp_test_…`). Keep `RAZORPAY_KEY_SECRET` as a server env var only. Switch to live keys when you are ready to charge.
+5. Deploy the Next.js app (Vercel or any Node host that can run `npm run build` then `npm start`). The app is a standard App Router project; no Docker runtime is required for the web process.
+6. Optionally point Razorpay webhooks at `https://<your-domain>/api/payments/razorpay/webhook` and set `RAZORPAY_WEBHOOK_SECRET`.
+7. Confirm `/robots.txt` and `/sitemap.xml` after the first deploy.
 
-Put **Razorpay test** `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` in `.env.local` (never in source). The browser only receives the public key id after you sign in and create an order. Without keys, non-production uses a local test checkout that still creates an order, verifies a server-side signature, writes the purchase, and unlocks the test.
-
-With PostgreSQL running, payment orders and purchases are stored in Prisma (`PaymentOrder`, `Purchase`). The same records are mirrored to the file store so the dashboard works if the database is down.
+Catalog, auth, and dashboard work without Postgres in development. On Vercel and similar platforms, `/tmp` storage is not durable or shared, so production traffic should use PostgreSQL.
 
 ## Routes
 
@@ -89,14 +152,6 @@ With PostgreSQL running, payment orders and purchases are stored in Prisma (`Pay
 | `/library` | Redirects to `/dashboard/tests` |
 | `/account` | Redirects to `/dashboard/profile` |
 
-Dashboard, checkout, and admin routes are noindex. Public catalog URLs are indexable.
-
-## SEO
-
-Public pages emit a unique title, meta description, canonical URL, Open Graph, and Twitter tags. `/robots.txt` allows the catalog and disallows dashboard, admin, checkout, auth, and in-progress exam routes. `/sitemap.xml` lists home, static guides, published vendors, exams, and practice-test URLs (`/certifications/[vendor]/[exam]` and `/practice-test/[vendor]/[exam]`).
-
-Catalog pages include BreadcrumbList JSON-LD. Exam and practice-test pages add Course/Product and FAQ structured data. Search and paginated filter views canonicalise to the clean catalog URL and are marked noindex so they do not compete with provider and exam pages.
-
 ## Payments API
 
 | Method | Path | Purpose |
@@ -105,19 +160,6 @@ Catalog pages include BreadcrumbList JSON-LD. Exam and practice-test pages add C
 | POST | `/api/payments/razorpay/verify` | Verify signature and unlock (auth) |
 | POST | `/api/payments/razorpay/fail` | Record a failed payment (auth) |
 | POST | `/api/payments/razorpay/cancel` | Record a cancelled checkout (auth) |
+| POST | `/api/payments/razorpay/simulate` | Local unlock only; 403 in production |
 | GET | `/api/payments/purchase-status?slug=` | Owned or not (auth) |
 | POST | `/api/payments/razorpay/webhook` | Optional `payment.captured` (webhook secret) |
-
-## Folder structure
-
-```
-prisma/                 PostgreSQL schema
-src/app/                Routes, SEO, API handlers
-src/auth.ts             Auth.js (Node: credentials + bcrypt)
-src/auth.config.ts      Edge-safe session config and route protection
-src/proxy.ts              Protects /dashboard, /account, /library, /checkout, /admin
-src/lib/payments/         Razorpay order create, signature verify, webhooks
-src/lib/commerce/         Orders, purchases, unlocks
-src/components/         Layout, catalog, dashboard, exam, shadcn primitives
-src/lib/                Auth, commerce, exam, catalog, env
-```

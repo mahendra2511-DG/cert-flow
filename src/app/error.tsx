@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -20,9 +21,14 @@ export default function ErrorPage({
       <p className="mt-2 text-sm text-muted-foreground">
         The page failed to load. Try again, or return to the catalog.
       </p>
-      <Button type="button" className="mt-6" onClick={reset}>
-        Try again
-      </Button>
+      <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <Button type="button" onClick={reset}>
+          Try again
+        </Button>
+        <Button nativeButton={false} variant="outline" render={<Link href="/" />}>
+          Go home
+        </Button>
+      </div>
     </div>
   );
 }

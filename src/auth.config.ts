@@ -46,16 +46,14 @@ export const authConfig = {
         token.role = (user as { role?: "admin" | "learner" }).role === "admin" ? "admin" : "learner";
       }
       if (trigger === "update" && session) {
-        const next = session as { name?: string; email?: string; role?: "admin" | "learner" };
+        const next = session as { name?: string; email?: string };
         if (typeof next.name === "string") {
           token.name = next.name;
         }
         if (typeof next.email === "string") {
           token.email = next.email;
         }
-        if (next.role === "admin" || next.role === "learner") {
-          token.role = next.role;
-        }
+        // Role is never taken from the client session payload.
       }
       return token;
     },
