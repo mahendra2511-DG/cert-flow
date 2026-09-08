@@ -32,6 +32,7 @@ Start PostgreSQL (optional for browsing the sample catalog):
 ```bash
 docker compose up -d
 npx prisma migrate dev --name init
+npm run db:seed
 ```
 
 Then:
@@ -53,8 +54,9 @@ See `.env.example`. Catalog pages run without a database. Sign-in persistence, p
 | Path | Purpose |
 | --- | --- |
 | `/` | Home and featured catalog |
-| `/certifications` | Search and browse tracks |
-| `/certifications/[slug]` | Certification details |
+| `/certifications` | Search, filters, sorting, pagination |
+| `/certifications/[vendor]` | Provider catalog |
+| `/certifications/[vendor]/[exam]` | Exam details and purchase CTA |
 | `/practice-tests` | Practice test catalog |
 | `/practice-tests/[slug]` | Test details and purchase CTA |
 | `/checkout/[slug]` | Razorpay checkout shell |

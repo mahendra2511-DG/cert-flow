@@ -10,6 +10,7 @@ export type CatalogCategory = {
   description: string;
   hrefQuery: string;
   accent: string;
+  href?: string;
 };
 
 export type CatalogCertification = {

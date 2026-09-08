@@ -17,8 +17,8 @@ const footerGroups = [
     links: [
       { href: "/certifications", label: "All certifications" },
       { href: "/practice-tests", label: "Practice tests" },
-      { href: "/certifications?q=azure", label: "Azure" },
-      { href: "/certifications?q=aws", label: "AWS" },
+      { href: "/certifications?category=azure", label: "Azure" },
+      { href: "/certifications/aws", label: "AWS" },
     ],
   },
   {

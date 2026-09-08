@@ -4,13 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { StarRating } from "@/components/catalog/star-rating";
 import type { CatalogCertification, CatalogPracticeTest } from "@/lib/catalog/types";
 import { certifications, providerBySlug } from "@/lib/catalog/data";
+import { examPath } from "@/lib/catalog/seed-catalog";
+import type { Route } from "next";
 import { formatInrFromPaise } from "@/lib/utils";
 
 export function CertificationCard({ item }: { item: CatalogCertification }) {
   const provider = providerBySlug(item.providerSlug);
 
   return (
-    <Link href={`/certifications/${item.slug}`} className="block h-full">
+    <Link href={examPath(item.providerSlug, item.slug) as Route} className="block h-full">
       <Card className="h-full transition-shadow hover:shadow-md">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">

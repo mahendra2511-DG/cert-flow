@@ -10,9 +10,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { certificationBySlug, practiceTestBySlug } from "@/lib/catalog/data";
+import { examPath } from "@/lib/catalog/seed-catalog";
 import { hasRazorpay } from "@/lib/env";
 import { createMetadata } from "@/lib/seo";
 import { formatInrFromPaise } from "@/lib/utils";
+import type { Route } from "next";
 
 export async function generateMetadata({
   params,
@@ -62,7 +64,7 @@ export default async function PracticeTestDetailPage({
             <>
               {" "}
               /{" "}
-              <Link href={`/certifications/${cert.slug}`} className="hover:text-foreground">
+              <Link href={examPath(cert.providerSlug, cert.slug) as Route} className="hover:text-foreground">
                 {cert.code}
               </Link>
             </>

@@ -1,4 +1,5 @@
-import { certifications, practiceTests } from "@/lib/catalog/data";
+import { seedExams, vendorPath } from "@/lib/catalog/seed-catalog";
+import { practiceTests } from "@/lib/catalog/data";
 import { absoluteUrl } from "@/lib/seo";
 
 export default function sitemap() {
@@ -14,10 +15,11 @@ export default function sitemap() {
     "/contact",
   ];
 
-  const certPaths = certifications.map((item) => `/certifications/${item.slug}`);
+  const vendorPaths = [...new Set(seedExams.map((exam) => vendorPath(exam.vendorSlug)))];
+  const examPaths = seedExams.map((exam) => `/certifications/${exam.vendorSlug}/${exam.slug}`);
   const testPaths = practiceTests.map((item) => `/practice-tests/${item.slug}`);
 
-  return [...staticPaths, ...certPaths, ...testPaths].map((path) => ({
+  return [...staticPaths, ...vendorPaths, ...examPaths, ...testPaths].map((path) => ({
     url: absoluteUrl(path || "/"),
     lastModified: new Date(),
   }));

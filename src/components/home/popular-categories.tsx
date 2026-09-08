@@ -39,7 +39,7 @@ export function PopularCategories({
             {categories.map((category) => (
               <li key={category.slug} className={category.slug === "other" ? "lg:col-span-2" : undefined}>
                 <Link
-                  href={`/certifications?q=${encodeURIComponent(category.hrefQuery)}` as Route}
+                  href={(category.href ?? `/certifications?q=${encodeURIComponent(category.hrefQuery)}`) as Route}
                   className={`group block h-full rounded-2xl border bg-gradient-to-br ${category.accent} p-5 ring-1 ring-foreground/5 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring`}
                 >
                   <div className="flex items-start justify-between gap-3">

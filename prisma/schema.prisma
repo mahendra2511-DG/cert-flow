@@ -80,34 +80,92 @@ model VerificationToken {
 }
 
 model Provider {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  description String   @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  description     String   @db.Text
+  longDescription String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   certifications Certification[]
 }
 
-model Certification {
+model Category {
   id          String   @id @default(cuid())
   slug        String   @unique
-  code        String
   name        String
-  summary     String
   description String   @db.Text
-  level       String
-  durationMin Int
-  providerId  String
+  accent      String   @default("from-slate-100 to-white")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  provider     Provider      @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  certifications CertificationCategory[]
+}
+
+model CertificationCategory {
+  certificationId String
+  categoryId      String
+
+  certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([certificationId, categoryId])
+  @@index([categoryId])
+}
+
+model Certification {
+  id              String   @id @default(cuid())
+  slug            String
+  code            String
+  name            String
+  summary         String
+  description     String   @db.Text
+  level           String
+  durationMin     Int
+  passingScore    Int
+  language        String   @default("English")
+  examFormat      String
+  isPopular       Boolean  @default(false)
+  seoTitle        String?
+  seoDescription  String?  @db.Text
+  providerId      String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  provider      Provider                 @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  categories    CertificationCategory[]
+  outcomes      CertificationOutcome[]
+  faqs          CertificationFaq[]
   practiceTests PracticeTest[]
 
+  @@unique([providerId, slug])
   @@index([providerId])
   @@index([code])
+  @@index([isPopular])
+}
+
+model CertificationOutcome {
+  id               String @id @default(cuid())
+  certificationId  String
+  body             String
+  order            Int
+
+  certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+
+  @@index([certificationId, order])
+}
+
+model CertificationFaq {
+  id              String @id @default(cuid())
+  certificationId String
+  question        String
+  answer          String @db.Text
+  order           Int
+
+  certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+
+  @@index([certificationId, order])
 }
 
 model PracticeTest {
@@ -121,6 +179,9 @@ model PracticeTest {
   passingScore    Int
   pricePaise      Int
   currency        String   @default("INR")
+  ratingAverage   Float    @default(0)
+  ratingCount     Int      @default(0)
+  isPopular       Boolean  @default(false)
   isPublished     Boolean  @default(false)
   certificationId String
   createdAt       DateTime @default(now())
