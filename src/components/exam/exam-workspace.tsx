@@ -106,14 +106,14 @@ export function ExamWorkspace({
             </p>
             <ProgressTracker answered={answeredCount(answers)} total={total} />
           </div>
-          <ExamTimer remainingSeconds={snapshot.remainingSeconds} onExpire={onExpire} />
+          <ExamTimer key={snapshot.attempt.id} remainingSeconds={snapshot.remainingSeconds} onExpire={onExpire} />
         </div>
 
         <QuestionRenderer
           question={question}
           selectedIds={answer?.selectedOptionIds ?? []}
           onChange={onSelect}
-          disabled={pending && expireLock.current}
+          disabled={pending}
         />
 
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3">

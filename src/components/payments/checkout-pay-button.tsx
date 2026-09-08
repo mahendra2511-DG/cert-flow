@@ -306,6 +306,7 @@ export function CheckoutPayButton({
         </div>
       ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
       <p className="sr-only">{title}</p>
     </div>
   );

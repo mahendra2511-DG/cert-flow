@@ -481,6 +481,10 @@ export function toPublicQuestion(question: ExamQuestion) {
     order: question.order,
     type: question.type,
     prompt: question.prompt,
-    options: question.options.map(({ isCorrect: _isCorrect, ...option }) => option),
+    options: question.options.map((option) => ({
+      id: option.id,
+      label: option.label,
+      body: option.body,
+    })),
   };
 }

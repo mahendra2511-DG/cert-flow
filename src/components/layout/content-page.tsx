@@ -15,7 +15,7 @@ export function ContentPage({
   children: React.ReactNode;
 }) {
   return (
-    <PageContainer className="max-w-3xl py-12">
+    <PageContainer className="max-w-3xl py-12" data-page-path={path}>
       <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: title }]} />
       <h1 className="mt-4 text-3xl font-semibold">{title}</h1>
       <p className="mt-2 text-muted-foreground">{description}</p>

@@ -1,5 +1,5 @@
 import { saveExamAction } from "@/lib/admin/actions";
-import { getExamAdmin, getLiveQuestions, listVendorsAdmin, type LiveExam } from "@/lib/admin/catalog-store";
+import { getLiveQuestions, listVendorsAdmin, type LiveExam } from "@/lib/admin/catalog-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

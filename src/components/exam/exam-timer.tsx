@@ -15,10 +15,6 @@ export function ExamTimer({
   const called = useRef(false);
 
   useEffect(() => {
-    setSeconds(remainingSeconds);
-  }, [remainingSeconds]);
-
-  useEffect(() => {
     const id = window.setInterval(() => {
       setSeconds((value) => Math.max(0, value - 1));
     }, 1000);
