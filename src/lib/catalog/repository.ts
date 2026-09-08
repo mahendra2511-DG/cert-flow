@@ -8,6 +8,7 @@ import {
   seedVendors,
   type SeedExam,
 } from "@/lib/catalog/seed-catalog";
+import { getQuestionsForTest } from "@/lib/exam/questions";
 import type { CatalogCategory, CatalogFaq, CatalogPracticeTest, CatalogTestimonial } from "@/lib/catalog/types";
 
 export const CATALOG_PAGE_SIZE = 6;
@@ -70,7 +71,10 @@ export type ListExamsInput = {
 function toListing(exam: SeedExam): ExamListing {
   const vendor = seedVendors.find((item) => item.slug === exam.vendorSlug);
   const tests = exam.tests;
-  const questionCount = tests.reduce((sum, test) => sum + test.questionCount, 0);
+  const questionCount = tests.reduce(
+    (sum, test) => sum + getQuestionsForTest(test.slug).length,
+    0,
+  );
   const pricePaise = Math.min(...tests.map((test) => test.pricePaise));
   const ratingCount = tests.reduce((sum, test) => sum + test.ratingCount, 0);
   const ratingAverage =

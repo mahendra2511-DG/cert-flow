@@ -57,8 +57,10 @@ See `.env.example`. Catalog pages run without a database. Sign-in persistence, p
 | `/certifications` | Search, filters, sorting, pagination |
 | `/certifications/[vendor]` | Provider catalog |
 | `/certifications/[vendor]/[exam]` | Exam details and purchase CTA |
-| `/practice-tests` | Practice test catalog |
-| `/practice-tests/[slug]` | Test details and purchase CTA |
+| `/practice-test/[vendor]/[exam]` | Practice-test overview |
+| `/practice-test/[vendor]/[exam]/start` | Begin or continue a sitting |
+| `/practice-test/[vendor]/[exam]/question/[n]` | Timed question UI |
+| `/practice-test/[vendor]/[exam]/result/[attemptId]` | Score and review |
 | `/checkout/[slug]` | Razorpay checkout shell |
 | `/library` | Purchased tests |
 | `/exam/[attemptId]` | Online exam shell |

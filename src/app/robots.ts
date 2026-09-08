@@ -5,7 +5,17 @@ export default function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/account", "/library", "/exam", "/results", "/checkout", "/api"],
+      disallow: [
+        "/account",
+        "/library",
+        "/exam",
+        "/results",
+        "/checkout",
+        "/api",
+        "/practice-test/*/start",
+        "/practice-test/*/question",
+        "/practice-test/*/result",
+      ],
     },
     sitemap: absoluteUrl("/sitemap.xml"),
   };

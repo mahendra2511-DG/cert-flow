@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { StarRating } from "@/components/catalog/star-rating";
 import { PageContainer, SectionHeader } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
@@ -35,13 +36,14 @@ export function PopularPracticeTests({ tests }: { tests: CatalogPracticeTest[] }
           <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {tests.map((test) => {
               const cert = certificationBySlug(test.certificationSlug);
+              if (!cert) return null;
               return (
                 <li key={test.slug}>
                   <Card className="h-full transition-shadow hover:shadow-md">
                     <CardHeader>
                       <div className="flex items-center justify-between gap-2">
-                        <Badge variant="secondary">{cert?.code ?? "Exam"}</Badge>
-                        <span className="text-xs text-muted-foreground">{cert?.name}</span>
+                        <Badge variant="secondary">{cert.code}</Badge>
+                        <span className="text-xs text-muted-foreground">{cert.name}</span>
                       </div>
                       <CardTitle className="font-heading text-lg leading-snug">{test.title}</CardTitle>
                       <StarRating value={test.ratingAverage} count={test.ratingCount} />
@@ -57,7 +59,9 @@ export function PopularPracticeTests({ tests }: { tests: CatalogPracticeTest[] }
                     <CardFooter>
                       <Button
                         nativeButton={false}
-                        render={<Link href={`/practice-tests/${test.slug}`} />}
+                        render={
+                          <Link href={`/practice-test/${cert.providerSlug}/${cert.slug}` as Route} />
+                        }
                         className="w-full"
                       >
                         View exam

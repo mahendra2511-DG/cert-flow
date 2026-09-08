@@ -177,16 +177,15 @@ export default async function ExamDetailPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-3xl font-semibold">{formatInrFromPaise(detail.pricePaise)}</p>
-              <Button nativeButton={false} render={<Link href={checkoutHref} />} className="w-full">
-                Continue to checkout
-              </Button>
               <Button
                 nativeButton={false}
-                render={<Link href={`/practice-tests/${detail.primaryTestSlug}` as Route} />}
-                variant="outline"
+                render={<Link href={`/practice-test/${detail.vendorSlug}/${detail.examSlug}` as Route} />}
                 className="w-full"
               >
-                Practice test details
+                Start / view practice test
+              </Button>
+              <Button nativeButton={false} render={<Link href={checkoutHref} />} variant="outline" className="w-full">
+                Continue to checkout
               </Button>
             </CardContent>
           </Card>

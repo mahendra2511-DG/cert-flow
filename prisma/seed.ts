@@ -1,6 +1,7 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedCategories, seedExams, seedVendors } from "../src/lib/catalog/seed-catalog";
+import { getQuestionsForTest } from "../src/lib/exam/questions";
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -87,11 +88,35 @@ async function main() {
             ratingCount: test.ratingCount,
             isPopular: test.isPopular,
             isPublished: true,
+            difficulty: exam.level,
           })),
         },
       },
     });
     void certification;
+  }
+
+  const tests = await prisma.practiceTest.findMany();
+  for (const test of tests) {
+    for (const question of getQuestionsForTest(test.slug)) {
+      await prisma.question.create({
+        data: {
+          practiceTestId: test.id,
+          prompt: question.prompt,
+          explanation: question.explanation,
+          type: question.type,
+          order: question.order,
+          options: {
+            create: question.options.map((option, order) => ({
+              label: option.label,
+              body: option.body,
+              isCorrect: option.isCorrect,
+              order,
+            })),
+          },
+        },
+      });
+    }
   }
 
   console.log(`Seeded ${seedVendors.length} vendors and ${seedExams.length} exams.`);
