@@ -7,6 +7,11 @@ export default function sitemap() {
     "/certifications",
     "/practice-tests",
     "/about",
+    "/resources",
+    "/support",
+    "/privacy",
+    "/terms",
+    "/contact",
   ];
 
   const certPaths = certifications.map((item) => `/certifications/${item.slug}`);

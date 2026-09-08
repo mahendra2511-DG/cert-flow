@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { CatalogCertification, CatalogPracticeTest } from "@/lib/catalog/data";
+import { StarRating } from "@/components/catalog/star-rating";
+import type { CatalogCertification, CatalogPracticeTest } from "@/lib/catalog/types";
 import { certifications, providerBySlug } from "@/lib/catalog/data";
 import { formatInrFromPaise } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export function PracticeTestCard({ item }: { item: CatalogPracticeTest }) {
           <CardDescription>
             {item.questionCount} questions · {item.timeLimitMin} min
           </CardDescription>
+          <StarRating value={item.ratingAverage} count={item.ratingCount} />
         </CardHeader>
         <CardContent className="flex items-end justify-between gap-3">
           <p className="text-sm text-muted-foreground">{item.summary}</p>

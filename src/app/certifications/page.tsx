@@ -1,6 +1,6 @@
 import { CertificationCard, PracticeTestCard } from "@/components/catalog/cards";
+import { CatalogSearch } from "@/components/catalog/search-form";
 import { EmptyState } from "@/components/ui-patterns/empty-state";
-import { Input } from "@/components/ui/input";
 import { searchCatalog } from "@/lib/catalog/data";
 import { createMetadata } from "@/lib/seo";
 
@@ -22,18 +22,12 @@ export default async function CertificationsPage({
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-semibold">Certifications</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        Filter the catalog by name or exam code. Each track opens a detail page with available
-        practice tests.
+        Filter the catalog by name, vendor, or exam code. Each track opens a detail page with
+        available practice tests.
       </p>
-      <form className="mt-6 max-w-md" role="search">
-        <Input
-          name="q"
-          type="search"
-          defaultValue={q}
-          placeholder="Try SAA-C03, Azure, or Security+"
-          aria-label="Search certifications"
-        />
-      </form>
+      <div className="mt-6 max-w-xl">
+        <CatalogSearch id="certifications-search" defaultValue={q} />
+      </div>
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold">Tracks</h2>
