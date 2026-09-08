@@ -23,6 +23,9 @@ function statusVariant(status: PaymentStatus) {
   if (status === "PENDING") {
     return "secondary" as const;
   }
+  if (status === "CANCELLED") {
+    return "outline" as const;
+  }
   return "destructive" as const;
 }
 

@@ -19,6 +19,8 @@ import { getQuestionsForTest } from "@/lib/exam/questions";
 import { createMetadata } from "@/lib/seo";
 import { formatInrFromPaise } from "@/lib/utils";
 import { Flag, ListChecks, Shield, Clock } from "lucide-react";
+import { auth } from "@/auth";
+import { userOwnsExam } from "@/lib/commerce/checkout";
 
 export async function generateStaticParams() {
   return seedExams.map((item) => ({ vendor: item.vendorSlug, exam: item.slug }));
@@ -68,6 +70,8 @@ export default async function PracticeTestDetailPage({
   const questionCount = getQuestionsForTest(context.test.slug).length;
   const startHref = `/practice-test/${vendor}/${exam}/start` as Route;
   const checkoutHref = `/checkout/${context.test.slug}` as Route;
+  const session = await auth();
+  const owned = session?.user?.id ? await userOwnsExam(session.user.id, vendor, exam) : false;
 
   return (
     <PageContainer className="py-10">
@@ -127,19 +131,29 @@ export default async function PracticeTestDetailPage({
         <aside>
           <Card>
             <CardHeader>
-              <CardTitle>Start this sitting</CardTitle>
+              <CardTitle>{owned ? "You own this test" : "Purchase access"}</CardTitle>
               <CardDescription>
-                Demo access is open so you can try the engine before Razorpay checkout is connected.
+                {owned
+                  ? "Payment already verified. Start or continue a timed sitting from this account."
+                  : "Pay once in INR. Access unlocks only after Razorpay signature verification."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-3xl font-semibold">{formatInrFromPaise(context.test.pricePaise)}</p>
-              <Button nativeButton={false} render={<Link href={startHref} />} className="w-full">
-                Start practice test
-              </Button>
-              <Button nativeButton={false} render={<Link href={checkoutHref} />} variant="outline" className="w-full">
-                Purchase
-              </Button>
+              {owned ? (
+                <Button nativeButton={false} render={<Link href={startHref} />} className="w-full">
+                  Start practice test
+                </Button>
+              ) : (
+                <>
+                  <Button nativeButton={false} render={<Link href={checkoutHref} />} className="w-full">
+                    Continue to checkout
+                  </Button>
+                  <Button nativeButton={false} render={<Link href={startHref} />} variant="outline" className="w-full">
+                    I already paid
+                  </Button>
+                </>
+              )}
               <p className="text-xs text-muted-foreground">
                 Pass mark {context.test.passingScore}%. Timer auto-submits at zero.
               </p>

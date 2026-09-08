@@ -1,4 +1,4 @@
-export type PaymentStatus = "PAID" | "PENDING" | "FAILED";
+export type PaymentStatus = "PAID" | "PENDING" | "FAILED" | "CANCELLED";
 
 export type OrderItem = {
   practiceTestId: string;
@@ -20,6 +20,9 @@ export type StoredOrder = {
   invoiceNumber: string;
   paymentMethod: string;
   receiptNote: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  failureReason?: string;
 };
 
 export type StoredPurchase = {

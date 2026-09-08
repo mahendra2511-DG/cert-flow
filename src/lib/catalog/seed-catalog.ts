@@ -651,3 +651,13 @@ export function examPath(vendorSlug: string, examSlug: string) {
 export function vendorPath(vendorSlug: string) {
   return `/certifications/${vendorSlug}`;
 }
+
+export function findPracticeTestBySlug(slug: string) {
+  for (const exam of seedExams) {
+    const test = exam.tests.find((item) => item.slug === slug);
+    if (test) {
+      return { exam, test, vendorSlug: exam.vendorSlug };
+    }
+  }
+  return null;
+}

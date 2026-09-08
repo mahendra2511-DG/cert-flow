@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-const protectedPrefixes = ["/dashboard", "/account", "/library"];
+const protectedPrefixes = ["/dashboard", "/account", "/library", "/checkout"];
 
 export const authConfig = {
   trustHost: true,

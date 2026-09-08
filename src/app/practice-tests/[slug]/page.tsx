@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/card";
 import { certificationBySlug, practiceTestBySlug } from "@/lib/catalog/data";
 import { examPath } from "@/lib/catalog/seed-catalog";
-import { hasRazorpay } from "@/lib/env";
 import { createMetadata } from "@/lib/seo";
 import { formatInrFromPaise } from "@/lib/utils";
 import type { Route } from "next";
+import { auth } from "@/auth";
+import { userOwnsPracticeTest } from "@/lib/commerce/checkout";
 
 export async function generateMetadata({
   params,
@@ -51,7 +52,8 @@ export default async function PracticeTestDetailPage({
   }
 
   const cert = certificationBySlug(test.certificationSlug);
-  const paymentsReady = hasRazorpay();
+  const session = await auth();
+  const owned = session?.user?.id ? await userOwnsPracticeTest(session.user.id, test.slug) : false;
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -88,17 +90,27 @@ export default async function PracticeTestDetailPage({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-3xl font-semibold">{formatInrFromPaise(test.pricePaise)}</p>
-          <Button
-            nativeButton={false}
-            render={<Link href={`/checkout/${test.slug}`} />}
-            className="w-full"
-          >
-            Continue to checkout
-          </Button>
+          {owned ? (
+            <Button
+              nativeButton={false}
+              render={<Link href={`/practice-test/${cert?.providerSlug}/${cert?.slug}/start` as Route} />}
+              className="w-full"
+            >
+              Start practice test
+            </Button>
+          ) : (
+            <Button
+              nativeButton={false}
+              render={<Link href={`/checkout/${test.slug}`} />}
+              className="w-full"
+            >
+              Continue to checkout
+            </Button>
+          )}
           <p className="text-xs text-muted-foreground">
-            {paymentsReady
-              ? "Razorpay keys are present. Order creation will be wired in the payments slice."
-              : "Razorpay keys are not set yet. Checkout is a foundation screen until keys are added."}
+            {owned
+              ? "This account already has verified access."
+              : "Razorpay Checkout runs in the browser with only the public key id. The secret key stays on the server."}
           </p>
         </CardContent>
       </Card>

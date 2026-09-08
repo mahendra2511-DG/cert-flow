@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { DEMO_USER_ID } from "@/lib/auth/types";
-import type { StoredOrder, StoredPurchase } from "@/lib/commerce/types";
+import { prisma } from "@/lib/db";
+import type { PaymentStatus, StoredOrder, StoredPurchase } from "@/lib/commerce/types";
 
 const FILE = path.join("/tmp", "prepharbor-orders.json");
 
@@ -56,6 +57,7 @@ function demoOrders(): StoredOrder[] {
       invoiceNumber: "INV-2026-1042",
       paymentMethod: "Razorpay · UPI",
       receiptNote: "Paid in full. Access is unlimited for this practice test, including retakes.",
+      razorpayOrderId: "order_demo_saa",
     },
     {
       id: "ord_ph_3c91de",
@@ -77,6 +79,7 @@ function demoOrders(): StoredOrder[] {
       invoiceNumber: "INV-2026-1108",
       paymentMethod: "Razorpay · Visa •••• 4242",
       receiptNote: "Paid in full. GST invoice available from this receipt page.",
+      razorpayOrderId: "order_demo_az",
     },
     {
       id: "ord_ph_71bb04",
@@ -98,8 +101,74 @@ function demoOrders(): StoredOrder[] {
       invoiceNumber: "INV-2026-1187",
       paymentMethod: "Razorpay · Net banking",
       receiptNote: "Paid in full. Start from your dashboard whenever you are ready.",
+      razorpayOrderId: "order_demo_sy0",
     },
   ];
+}
+
+function mapStatus(status: string): PaymentStatus {
+  if (status === "PAID" || status === "REFUNDED") {
+    return "PAID";
+  }
+  if (status === "FAILED") {
+    return "FAILED";
+  }
+  if (status === "CANCELLED") {
+    return "CANCELLED";
+  }
+  return "PENDING";
+}
+
+function fromPrisma(order: {
+  id: string;
+  userId: string;
+  practiceTestSlug: string;
+  vendorSlug: string;
+  examSlug: string;
+  examCode: string;
+  testName: string;
+  amountPaise: number;
+  currency: string;
+  status: string;
+  razorpayOrderId: string;
+  razorpayPaymentId: string | null;
+  invoiceNumber: string;
+  paymentMethod: string | null;
+  failureReason: string | null;
+  createdAt: Date;
+}): StoredOrder {
+  const status = mapStatus(order.status);
+  return {
+    id: order.id,
+    userId: order.userId,
+    items: [
+      {
+        practiceTestId: order.practiceTestSlug,
+        testName: order.testName,
+        examCode: order.examCode,
+        vendorSlug: order.vendorSlug,
+        examSlug: order.examSlug,
+        amountPaise: order.amountPaise,
+      },
+    ],
+    amountPaise: order.amountPaise,
+    currency: "INR",
+    status,
+    createdAt: order.createdAt.toISOString(),
+    invoiceNumber: order.invoiceNumber,
+    paymentMethod: order.paymentMethod ?? "Razorpay",
+    receiptNote:
+      status === "PAID"
+        ? "Paid in full. Access is unlocked for this practice test, including retakes."
+        : status === "CANCELLED"
+          ? "Checkout was closed before payment completed."
+          : status === "FAILED"
+            ? (order.failureReason ?? "Payment failed.")
+            : "Waiting for Razorpay confirmation.",
+    razorpayOrderId: order.razorpayOrderId,
+    razorpayPaymentId: order.razorpayPaymentId ?? undefined,
+    failureReason: order.failureReason ?? undefined,
+  };
 }
 
 async function hydrate() {
@@ -117,8 +186,25 @@ async function hydrate() {
       }
       await writeFileStore();
     }
+    if (prisma) {
+      try {
+        const rows = await prisma.paymentOrder.findMany();
+        for (const row of rows) {
+          mem().set(row.id, fromPrisma(row));
+        }
+        await writeFileStore();
+      } catch {
+        // Schema may not be pushed yet.
+      }
+    }
   })();
   return memory.__prepharborOrdersReady;
+}
+
+export async function saveStoredOrder(order: StoredOrder) {
+  await hydrate();
+  mem().set(order.id, order);
+  await writeFileStore();
 }
 
 export async function listOrdersForUser(userId: string) {
@@ -135,6 +221,11 @@ export async function getOrderForUser(userId: string, orderId: string) {
     return null;
   }
   return order;
+}
+
+export async function getOrderByRazorpayId(razorpayOrderId: string) {
+  await hydrate();
+  return [...mem().values()].find((order) => order.razorpayOrderId === razorpayOrderId) ?? null;
 }
 
 export async function listPurchasesForUser(userId: string): Promise<StoredPurchase[]> {
@@ -160,4 +251,20 @@ export async function listPurchasesForUser(userId: string): Promise<StoredPurcha
     }
   }
   return purchases;
+}
+
+export async function hasPaidPurchase(userId: string, practiceTestSlug: string) {
+  const purchases = await listPurchasesForUser(userId);
+  return purchases.some((item) => item.practiceTestId === practiceTestSlug);
+}
+
+export async function findPendingOrder(userId: string, practiceTestSlug: string) {
+  const orders = await listOrdersForUser(userId);
+  return (
+    orders.find(
+      (order) =>
+        order.status === "PENDING" &&
+        order.items.some((item) => item.practiceTestId === practiceTestSlug),
+    ) ?? null
+  );
 }

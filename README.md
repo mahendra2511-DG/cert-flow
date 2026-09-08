@@ -10,7 +10,7 @@ The product is independent. It is not affiliated with any certification vendor a
 - Tailwind CSS and shadcn/ui
 - PostgreSQL with Prisma (optional)
 - Auth.js (NextAuth v5) with credentials, JWT sessions, and protected routes
-- Razorpay for Indian payments (checkout is stubbed until keys are set)
+- Razorpay for Indian payments (test keys first; secret stays on the server)
 
 ## Run locally
 
@@ -47,7 +47,11 @@ Password reset does not send email in this environment. Request a link from `/fo
 
 ## Environment variables
 
-See `.env.example`. Catalog, sign-up, login, and dashboard data persist to `/tmp` when `DATABASE_URL` is unset. Razorpay checkout still needs keys.
+See `.env.example`. Catalog, sign-up, login, and dashboard data persist to `/tmp` when `DATABASE_URL` is unset.
+
+Put **Razorpay test** `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` in `.env.local` (never in source). The browser only receives the public key id after you sign in and create an order. Without keys, non-production uses a local test checkout that still creates an order, verifies a server-side signature, writes the purchase, and unlocks the test.
+
+With PostgreSQL running, payment orders and purchases are stored in Prisma (`PaymentOrder`, `Purchase`). The same records are mirrored to the file store so the dashboard works if the database is down.
 
 ## Routes
 
@@ -70,11 +74,22 @@ See `.env.example`. Catalog, sign-up, login, and dashboard data persist to `/tmp
 | `/dashboard/attempts` | Attempt history |
 | `/dashboard/orders` | Orders and receipts |
 | `/dashboard/profile` | Name, email, password, settings |
-| `/checkout/[slug]` | Razorpay checkout shell |
+| `/checkout/[slug]` | Razorpay checkout (sign-in required) |
 | `/library` | Redirects to `/dashboard/tests` |
 | `/account` | Redirects to `/dashboard/profile` |
 
-Dashboard routes require a signed-in session.
+Dashboard and checkout require a signed-in session.
+
+## Payments API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/api/payments/razorpay/order` | Create a Razorpay order (auth) |
+| POST | `/api/payments/razorpay/verify` | Verify signature and unlock (auth) |
+| POST | `/api/payments/razorpay/fail` | Record a failed payment (auth) |
+| POST | `/api/payments/razorpay/cancel` | Record a cancelled checkout (auth) |
+| GET | `/api/payments/purchase-status?slug=` | Owned or not (auth) |
+| POST | `/api/payments/razorpay/webhook` | Optional `payment.captured` (webhook secret) |
 
 ## Folder structure
 
@@ -83,7 +98,9 @@ prisma/                 PostgreSQL schema
 src/app/                Routes, SEO, API handlers
 src/auth.ts             Auth.js (Node: credentials + bcrypt)
 src/auth.config.ts      Edge-safe session config and route protection
-src/proxy.ts              Protects /dashboard, /account, /library
+src/proxy.ts              Protects /dashboard, /account, /library, /checkout
+src/lib/payments/         Razorpay order create, signature verify, webhooks
+src/lib/commerce/         Orders, purchases, unlocks
 src/components/         Layout, catalog, dashboard, exam, shadcn primitives
 src/lib/                Auth, commerce, exam, catalog, env
 ```

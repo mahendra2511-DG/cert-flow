@@ -11,6 +11,7 @@ enum PurchaseStatus {
   PENDING
   PAID
   FAILED
+  CANCELLED
   REFUNDED
 }
 
@@ -35,10 +36,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  purchases Purchase[]
-  attempts  Attempt[]
+  accounts      Account[]
+  sessions      Session[]
+  purchases     Purchase[]
+  paymentOrders PaymentOrder[]
+  attempts      Attempt[]
 }
 
 model Account {
@@ -190,7 +192,6 @@ model PracticeTest {
 
   certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
   questions     Question[]
-  purchases     Purchase[]
   attempts      Attempt[]
 
   @@index([certificationId])
@@ -227,23 +228,53 @@ model QuestionOption {
   @@index([questionId, order])
 }
 
+model PaymentOrder {
+  id                 String         @id @default(cuid())
+  userId             String
+  practiceTestSlug   String
+  vendorSlug         String
+  examSlug           String
+  examCode           String
+  testName           String
+  amountPaise        Int
+  currency           String         @default("INR")
+  status             PurchaseStatus @default(PENDING)
+  razorpayOrderId    String         @unique
+  razorpayPaymentId  String?
+  razorpaySignature  String?
+  invoiceNumber      String
+  receipt            String
+  paymentMethod      String?
+  failureReason      String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchase Purchase?
+
+  @@index([userId, status])
+  @@index([userId, practiceTestSlug])
+}
+
 model Purchase {
-  id             String         @id @default(cuid())
-  userId         String
-  practiceTestId String
-  status         PurchaseStatus @default(PENDING)
-  amountPaise    Int
-  currency       String         @default("INR")
-  razorpayOrderId String?       @unique
-  razorpayPaymentId String?
-  razorpaySignature String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id               String         @id @default(cuid())
+  userId           String
+  paymentOrderId   String?        @unique
+  practiceTestSlug String
+  vendorSlug       String
+  examSlug         String
+  examCode         String
+  testName         String
+  amountPaise      Int
+  currency         String         @default("INR")
+  status           PurchaseStatus @default(PAID)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  practiceTest PracticeTest @relation(fields: [practiceTestId], references: [id], onDelete: Restrict)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentOrder PaymentOrder? @relation(fields: [paymentOrderId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, practiceTestId])
+  @@unique([userId, practiceTestSlug])
   @@index([userId, status])
 }
 
