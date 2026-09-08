@@ -83,7 +83,7 @@ prisma/                 PostgreSQL schema
 src/app/                Routes, SEO, API handlers
 src/auth.ts             Auth.js (Node: credentials + bcrypt)
 src/auth.config.ts      Edge-safe session config and route protection
-src/middleware.ts       Protects /dashboard, /account, /library
+src/proxy.ts              Protects /dashboard, /account, /library
 src/components/         Layout, catalog, dashboard, exam, shadcn primitives
 src/lib/                Auth, commerce, exam, catalog, env
 ```
