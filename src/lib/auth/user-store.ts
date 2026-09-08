@@ -70,7 +70,7 @@ async function hydrate() {
   memory.__prepharborUsersReady = (async () => {
     const stored = await readFileStore();
     for (const user of stored.users) {
-      usersMem().set(user.id, user);
+      usersMem().set(user.id, withRole(user));
     }
     for (const token of stored.resetTokens) {
       tokensMem().set(token.token, token);
@@ -156,6 +156,7 @@ async function ensureAdminUser() {
 
 export async function findUserByEmail(email: string) {
   await hydrate();
+  await ensureAdminUser();
   const normalized = email.toLowerCase().trim();
   const user = [...usersMem().values()].find((item) => item.email === normalized);
   return user ? withRole(user) : null;
@@ -286,6 +287,7 @@ export async function resetPasswordWithToken(token: string, password: string) {
 
 export async function listUsers() {
   await hydrate();
+  await ensureAdminUser();
   return [...usersMem().values()]
     .map(withRole)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
