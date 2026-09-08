@@ -14,6 +14,9 @@ export type ExamQuestion = {
   prompt: string;
   explanation: string;
   options: ExamOption[];
+  difficulty?: string;
+  category?: string;
+  tags?: string[];
 };
 
 export type PublicOption = Omit<ExamOption, "isCorrect">;

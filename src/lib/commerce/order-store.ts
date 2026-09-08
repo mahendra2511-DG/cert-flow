@@ -207,6 +207,13 @@ export async function saveStoredOrder(order: StoredOrder) {
   await writeFileStore();
 }
 
+export async function listAllOrders() {
+  await hydrate();
+  return [...mem().values()].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
 export async function listOrdersForUser(userId: string) {
   await hydrate();
   return [...mem().values()]

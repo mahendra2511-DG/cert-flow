@@ -25,9 +25,13 @@ export default async function SignInPage({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const session = await auth();
-  if (session?.user) {
-    redirect(route("/dashboard"));
-  }
   const params = await searchParams;
-  return <SignInForm callbackUrl={safeCallbackUrl(params.callbackUrl)} />;
+  const callbackUrl = safeCallbackUrl(params.callbackUrl);
+  if (session?.user) {
+    if (callbackUrl.startsWith("/admin") && session.user.role !== "admin") {
+      redirect(route("/forbidden"));
+    }
+    redirect(route(callbackUrl));
+  }
+  return <SignInForm callbackUrl={callbackUrl} />;
 }

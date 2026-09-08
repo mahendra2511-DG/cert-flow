@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-const protectedPrefixes = ["/dashboard", "/account", "/library", "/checkout"];
+const protectedPrefixes = ["/dashboard", "/account", "/library", "/checkout", "/admin"];
 
 export const authConfig = {
   trustHost: true,
@@ -15,10 +15,24 @@ export const authConfig = {
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
+      const pathname = request.nextUrl.pathname;
+      const isAdminPath = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
       const isLoggedIn = Boolean(auth?.user);
-      const isProtected = protectedPrefixes.some((prefix) =>
-        request.nextUrl.pathname.startsWith(prefix),
-      );
+      const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
+
+      if (isAdminPath) {
+        if (!isLoggedIn) {
+          return false;
+        }
+        if (auth?.user?.role !== "admin") {
+          if (pathname.startsWith("/api/")) {
+            return Response.json({ error: "Admin access required." }, { status: 403 });
+          }
+          return Response.redirect(new URL("/forbidden", request.nextUrl));
+        }
+        return true;
+      }
+
       if (isProtected) {
         return isLoggedIn;
       }
@@ -29,14 +43,18 @@ export const authConfig = {
         token.sub = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.role = (user as { role?: "admin" | "learner" }).role === "admin" ? "admin" : "learner";
       }
       if (trigger === "update" && session) {
-        const next = session as { name?: string; email?: string };
+        const next = session as { name?: string; email?: string; role?: "admin" | "learner" };
         if (typeof next.name === "string") {
           token.name = next.name;
         }
         if (typeof next.email === "string") {
           token.email = next.email;
+        }
+        if (next.role === "admin" || next.role === "learner") {
+          token.role = next.role;
         }
       }
       return token;
@@ -47,6 +65,7 @@ export const authConfig = {
         id: token.sub ?? "",
         name: token.name,
         email: token.email ?? "",
+        role: token.role === "admin" ? "admin" : "learner",
       };
       return session;
     },

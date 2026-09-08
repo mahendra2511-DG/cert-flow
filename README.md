@@ -41,7 +41,9 @@ npm run dev
 
 The app listens on [http://localhost:43145](http://localhost:43145).
 
-Demo sign-in: `demo@prepharbor.test` / `demo`. That account includes sample purchases, orders, and attempts.
+Demo sign-in: `demo@prepharbor.test` / `demo`. That account includes sample purchases, orders, and attempts. It cannot open `/admin`.
+
+Admin sign-in: `admin@prepharbor.test` / `adminadmin`. Staff routes and `/api/admin/*` require this role. Learners who visit `/admin` are sent to `/forbidden`.
 
 Password reset does not send email in this environment. Request a link from `/forgot-password` and use the demo inbox URL on the success screen.
 
@@ -65,7 +67,16 @@ With PostgreSQL running, payment orders and purchases are stored in Prisma (`Pay
 | `/practice-test/[vendor]/[exam]/start` | Begin or continue a sitting |
 | `/practice-test/[vendor]/[exam]/question/[n]` | Timed question UI |
 | `/practice-test/[vendor]/[exam]/result/[attemptId]` | Score and review |
-| `/sign-in` | Log in |
+| `/sign-in` | Log in (learner demo or admin) |
+| `/forbidden` | Shown when a learner opens an admin URL |
+| `/admin` | Admin dashboard (admin role only) |
+| `/admin/certifications` | Vendor create, edit, delete, publish |
+| `/admin/exams` | Exam catalog, SEO, price, duration |
+| `/admin/tests` | Practice tests |
+| `/admin/questions` | Question bank |
+| `/admin/questions/import` | CSV/JSON bulk import with validation |
+| `/admin/orders` | All checkout orders |
+| `/admin/users` | Account roles |
 | `/sign-up` | Create an account |
 | `/forgot-password` | Request a reset link |
 | `/reset-password` | Choose a new password |
@@ -98,7 +109,7 @@ prisma/                 PostgreSQL schema
 src/app/                Routes, SEO, API handlers
 src/auth.ts             Auth.js (Node: credentials + bcrypt)
 src/auth.config.ts      Edge-safe session config and route protection
-src/proxy.ts              Protects /dashboard, /account, /library, /checkout
+src/proxy.ts              Protects /dashboard, /account, /library, /checkout, /admin
 src/lib/payments/         Razorpay order create, signature verify, webhooks
 src/lib/commerce/         Orders, purchases, unlocks
 src/components/         Layout, catalog, dashboard, exam, shadcn primitives

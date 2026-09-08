@@ -30,14 +30,23 @@ export function CertificationCard({ item }: { item: CatalogCertification }) {
   );
 }
 
-export function PracticeTestCard({ item }: { item: CatalogPracticeTest }) {
+export function PracticeTestCard({
+  item,
+  examCode,
+  href,
+}: {
+  item: CatalogPracticeTest;
+  examCode?: string;
+  href?: Route;
+}) {
   const cert = certifications.find((c) => c.slug === item.certificationSlug);
+  const destination = (href ?? `/practice-tests/${item.slug}`) as Route;
 
   return (
-    <Link href={`/practice-tests/${item.slug}`} className="block h-full">
+    <Link href={destination} className="block h-full">
       <Card className="h-full transition-shadow hover:shadow-md">
         <CardHeader>
-          <Badge variant="outline">{cert?.code ?? "Exam"}</Badge>
+          <Badge variant="outline">{examCode ?? cert?.code ?? "Exam"}</Badge>
           <CardTitle className="font-heading text-lg">{item.title}</CardTitle>
           <CardDescription>
             {item.questionCount} questions · {item.timeLimitMin} min

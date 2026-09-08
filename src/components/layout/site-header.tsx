@@ -65,6 +65,11 @@ export function SiteHeader() {
             <div className="hidden h-8 w-24 animate-pulse rounded-lg bg-muted sm:block" />
           ) : signedIn ? (
             <>
+              {session?.user?.role === "admin" ? (
+                <Button nativeButton={false} render={<Link href={route("/admin")} />} variant="ghost">
+                  Admin
+                </Button>
+              ) : null}
               <Button nativeButton={false} render={<Link href={route("/dashboard")} />} variant="ghost">
                 Dashboard
               </Button>
@@ -105,6 +110,7 @@ export function SiteHeader() {
                   ...primaryNav,
                   ...(signedIn
                     ? [
+                        ...(session?.user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
                         { href: "/dashboard", label: "Dashboard" },
                         { href: "/dashboard/tests", label: "My tests" },
                         { href: "/dashboard/profile", label: "Profile" },

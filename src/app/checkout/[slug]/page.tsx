@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CheckoutPayButton } from "@/components/payments/checkout-pay-button";
 import { userOwnsPracticeTest } from "@/lib/commerce/checkout";
-import { findPracticeTestBySlug } from "@/lib/catalog/seed-catalog";
+import { findLivePracticeTest, vendorIsPublic } from "@/lib/admin/catalog-store";
 import { canAcceptPayments, isRazorpayTestMode, usesHostedRazorpay } from "@/lib/payments/razorpay";
 import { createMetadata } from "@/lib/seo";
 import { formatInrFromPaise } from "@/lib/utils";
@@ -32,8 +32,13 @@ export default async function CheckoutPage({
 }) {
   const session = await auth();
   const { slug } = await params;
-  const catalog = findPracticeTestBySlug(slug);
-  if (!catalog) {
+  const catalog = findLivePracticeTest(slug);
+  if (
+    !catalog ||
+    !catalog.exam.isPublished ||
+    !catalog.test.isPublished ||
+    !vendorIsPublic(catalog.vendorSlug)
+  ) {
     notFound();
   }
 

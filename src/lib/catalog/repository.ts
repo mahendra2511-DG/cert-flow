@@ -2,13 +2,10 @@ import { prisma } from "@/lib/db";
 import {
   examPath,
   seedCategories,
-  seedExams,
   seedSiteFaqs,
   seedTestimonials,
-  seedVendors,
-  type SeedExam,
 } from "@/lib/catalog/seed-catalog";
-import { getQuestionsForTest } from "@/lib/exam/questions";
+import { countAllQuestions, getExamAdmin, getLiveQuestions, getPublicExams, getPublicVendors, type LiveExam } from "@/lib/admin/catalog-store";
 import type { CatalogCategory, CatalogFaq, CatalogPracticeTest, CatalogTestimonial } from "@/lib/catalog/types";
 
 export const CATALOG_PAGE_SIZE = 6;
@@ -68,14 +65,11 @@ export type ListExamsInput = {
   popularOnly?: boolean;
 };
 
-function toListing(exam: SeedExam): ExamListing {
-  const vendor = seedVendors.find((item) => item.slug === exam.vendorSlug);
-  const tests = exam.tests;
-  const questionCount = tests.reduce(
-    (sum, test) => sum + getQuestionsForTest(test.slug).length,
-    0,
-  );
-  const pricePaise = Math.min(...tests.map((test) => test.pricePaise));
+function toListing(exam: LiveExam): ExamListing {
+  const vendorName = getPublicVendors().find((item) => item.slug === exam.vendorSlug)?.name ?? exam.vendorSlug;
+  const tests = exam.tests.filter((test) => test.isPublished);
+  const questionCount = tests.reduce((sum, test) => sum + getLiveQuestions(test.slug).length, 0);
+  const pricePaise = tests.length === 0 ? 0 : Math.min(...tests.map((test) => test.pricePaise));
   const ratingCount = tests.reduce((sum, test) => sum + test.ratingCount, 0);
   const ratingAverage =
     ratingCount === 0
@@ -85,7 +79,7 @@ function toListing(exam: SeedExam): ExamListing {
 
   return {
     vendorSlug: exam.vendorSlug,
-    vendorName: vendor?.name ?? exam.vendorSlug,
+    vendorName,
     examSlug: exam.slug,
     href: examPath(exam.vendorSlug, exam.slug),
     code: exam.code,
@@ -102,8 +96,8 @@ function toListing(exam: SeedExam): ExamListing {
   };
 }
 
-function matchesQuery(exam: SeedExam, q: string) {
-  const vendor = seedVendors.find((item) => item.slug === exam.vendorSlug);
+function matchesQuery(exam: LiveExam, q: string) {
+  const vendor = getPublicVendors().find((item) => item.slug === exam.vendorSlug);
   const haystack = [
     exam.name,
     exam.code,
@@ -146,7 +140,7 @@ export async function listExams(input: ListExamsInput = {}) {
   const pageSize = input.pageSize ?? CATALOG_PAGE_SIZE;
   const page = Math.max(1, input.page ?? 1);
 
-  let exams = seedExams.slice();
+  let exams = getPublicExams().slice();
   if (input.vendor) {
     exams = exams.filter((exam) => exam.vendorSlug === input.vendor);
   }
@@ -176,14 +170,15 @@ export async function listExams(input: ListExamsInput = {}) {
 }
 
 export async function getVendor(slug: string): Promise<VendorDetail | null> {
-  const vendor = seedVendors.find((item) => item.slug === slug);
+  const vendor = getPublicVendors().find((item) => item.slug === slug);
   if (!vendor) {
     return null;
   }
 
-  const exams = seedExams.filter((exam) => exam.vendorSlug === slug).map(toListing);
+  const vendorExams = getPublicExams().filter((exam) => exam.vendorSlug === slug);
+  const exams = vendorExams.map(toListing);
   const categoryCounts = new Map<string, number>();
-  for (const exam of seedExams.filter((item) => item.vendorSlug === slug)) {
+  for (const exam of vendorExams) {
     for (const categorySlug of exam.categorySlugs) {
       categoryCounts.set(categorySlug, (categoryCounts.get(categorySlug) ?? 0) + 1);
     }
@@ -208,11 +203,11 @@ export async function getVendor(slug: string): Promise<VendorDetail | null> {
 }
 
 export async function getExam(vendorSlug: string, examSlug: string): Promise<ExamDetail | null> {
-  const exam = seedExams.find((item) => item.vendorSlug === vendorSlug && item.slug === examSlug);
+  const exam = getPublicExams().find((item) => item.vendorSlug === vendorSlug && item.slug === examSlug);
   if (!exam) {
     return null;
   }
-  const vendor = seedVendors.find((item) => item.slug === vendorSlug);
+  const vendor = getPublicVendors().find((item) => item.slug === vendorSlug);
   const listing = toListing(exam);
 
   return {
@@ -229,20 +224,22 @@ export async function getExam(vendorSlug: string, examSlug: string): Promise<Exa
     seoDescription: exam.seoDescription,
     vendorDescription: vendor?.description ?? "",
     vendorLongDescription: vendor?.longDescription ?? "",
-    tests: exam.tests.map((test) => ({
-      ...test,
-      certificationSlug: exam.slug,
-    })),
+    tests: exam.tests
+      .filter((test) => test.isPublished)
+      .map((test) => ({
+        ...test,
+        certificationSlug: exam.slug,
+      })),
   };
 }
 
 export async function getRelatedExams(vendorSlug: string, examSlug: string, limit = 3) {
-  const current = seedExams.find((item) => item.vendorSlug === vendorSlug && item.slug === examSlug);
+  const current = getPublicExams().find((item) => item.vendorSlug === vendorSlug && item.slug === examSlug);
   if (!current) {
     return [];
   }
 
-  const sameVendor = seedExams
+  const sameVendor = getPublicExams()
     .filter((item) => item.vendorSlug === vendorSlug && item.slug !== examSlug)
     .map(toListing);
 
@@ -250,7 +247,7 @@ export async function getRelatedExams(vendorSlug: string, examSlug: string, limi
     return sameVendor.slice(0, limit);
   }
 
-  const extra = seedExams
+  const extra = getPublicExams()
     .filter(
       (item) =>
         item.slug !== examSlug &&
@@ -263,16 +260,18 @@ export async function getRelatedExams(vendorSlug: string, examSlug: string, limi
 }
 
 export async function listVendors() {
-  return seedVendors.map((vendor) => ({
+  const all = getPublicExams();
+  return getPublicVendors().map((vendor) => ({
     ...vendor,
-    examCount: seedExams.filter((exam) => exam.vendorSlug === vendor.slug).length,
+    examCount: all.filter((exam) => exam.vendorSlug === vendor.slug).length,
   }));
 }
 
 export async function listFilterCategories() {
+  const all = getPublicExams();
   return seedCategories.map((category) => ({
     ...category,
-    examCount: seedExams.filter((exam) => exam.categorySlugs.includes(category.slug)).length,
+    examCount: all.filter((exam) => exam.categorySlugs.includes(category.slug)).length,
   }));
 }
 
@@ -290,7 +289,7 @@ export async function getHomepageContent() {
       href: category.href,
       hrefQuery: category.slug === "kubernetes" ? "kubernetes" : category.slug,
       accent: category.accent,
-      examCount: seedExams.filter((exam) => exam.categorySlugs.includes(category.slug)).length,
+      examCount: getPublicExams().filter((exam) => exam.categorySlugs.includes(category.slug)).length,
     }));
 
   const popularResult = await listExams({ popularOnly: true, pageSize: 6, sort: "popular" });
@@ -298,28 +297,25 @@ export async function getHomepageContent() {
   return {
     popularCategories,
     popularTests: popularResult.items.flatMap((exam) => {
-      const full = seedExams.find((item) => item.slug === exam.examSlug);
+      const full = getExamAdmin(exam.vendorSlug, exam.examSlug);
       return (full?.tests ?? [])
-        .filter((test) => test.isPopular)
+        .filter((test) => test.isPopular && test.isPublished)
         .map((test) => ({ ...test, certificationSlug: exam.examSlug }));
     }),
     popularExams: popularResult.items,
     testimonials: seedTestimonials,
     faqs: seedSiteFaqs,
     stats: {
-      exams: seedExams.length,
-      questions: seedExams.reduce(
-        (sum, exam) => sum + exam.tests.reduce((inner, test) => inner + test.questionCount, 0),
-        0,
-      ),
+      exams: getPublicExams().length,
+      questions: countAllQuestions(),
       sittingsLabel: "12k+",
     },
   };
 }
 
 export async function getPracticeTestBySlug(slug: string) {
-  for (const exam of seedExams) {
-    const test = exam.tests.find((item) => item.slug === slug);
+  for (const exam of getPublicExams()) {
+    const test = exam.tests.find((item) => item.slug === slug && item.isPublished);
     if (test) {
       return {
         ...test,

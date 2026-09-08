@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { findUserById } from "@/lib/auth/user-store";
 import { findExamContext } from "@/lib/exam/engine";
-import { findPracticeTestBySlug } from "@/lib/catalog/seed-catalog";
+import { findLivePracticeTest, vendorIsPublic } from "@/lib/admin/catalog-store";
 import {
   findPendingOrder,
   getOrderByRazorpayId,
@@ -118,8 +118,13 @@ export async function userOwnsExam(userId: string, vendorSlug: string, examSlug:
 }
 
 export async function createCheckoutOrder(userId: string, practiceTestSlug: string) {
-  const catalog = findPracticeTestBySlug(practiceTestSlug);
-  if (!catalog) {
+  const catalog = findLivePracticeTest(practiceTestSlug);
+  if (
+    !catalog ||
+    !catalog.exam.isPublished ||
+    !catalog.test.isPublished ||
+    !vendorIsPublic(catalog.vendorSlug)
+  ) {
     return { error: "TEST_NOT_FOUND" as const };
   }
 

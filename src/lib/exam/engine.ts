@@ -1,5 +1,5 @@
-import { seedExams } from "@/lib/catalog/seed-catalog";
-import { getQuestionsForTest, toPublicQuestion } from "@/lib/exam/questions";
+import { getExamAdmin, getLiveQuestions, vendorIsPublic } from "@/lib/admin/catalog-store";
+import { toPublicQuestion } from "@/lib/exam/questions";
 import { calculateAttemptResult } from "@/lib/exam/result-calculator";
 import { getAttempt, listAttemptsForExam, saveAttempt } from "@/lib/exam/store";
 import { remainingSeconds, timeTakenSeconds } from "@/lib/exam/timer";
@@ -10,11 +10,11 @@ function createId() {
 }
 
 export function findExamContext(vendorSlug: string, examSlug: string) {
-  const exam = seedExams.find((item) => item.vendorSlug === vendorSlug && item.slug === examSlug);
-  if (!exam) {
+  const exam = getExamAdmin(vendorSlug, examSlug);
+  if (!exam || !exam.isPublished || !vendorIsPublic(vendorSlug)) {
     return null;
   }
-  const test = exam.tests[0];
+  const test = exam.tests.find((item) => item.isPublished) ?? null;
   if (!test) {
     return null;
   }
@@ -47,7 +47,7 @@ export async function startAttempt(input: {
 
   const now = new Date();
   const endsAt = new Date(now.getTime() + context.test.timeLimitMin * 60 * 1000);
-  const questions = getQuestionsForTest(context.test.slug);
+  const questions = getLiveQuestions(context.test.slug);
   const attempt: AttemptRecord = {
     id: createId(),
     userId: input.userId,
@@ -83,7 +83,7 @@ export async function getSnapshot(attemptId: string): Promise<ExamSnapshot | nul
   if (!attempt) {
     return null;
   }
-  const questions = getQuestionsForTest(attempt.practiceTestId).map(toPublicQuestion);
+  const questions = getLiveQuestions(attempt.practiceTestId).map(toPublicQuestion);
   return {
     attempt,
     questions,
@@ -93,7 +93,7 @@ export async function getSnapshot(attemptId: string): Promise<ExamSnapshot | nul
 
 export async function saveSelection(attemptId: string, questionId: string, selectedOptionIds: string[]) {
   const attempt = await requireInProgress(attemptId);
-  const question = getQuestionsForTest(attempt.practiceTestId).find((item) => item.id === questionId);
+  const question = getLiveQuestions(attempt.practiceTestId).find((item) => item.id === questionId);
   if (!question) {
     throw new Error("Question not found");
   }
@@ -126,7 +126,7 @@ export async function submitAttempt(attemptId: string): Promise<AttemptResult> {
     return toResult(attempt);
   }
 
-  const questions = getQuestionsForTest(attempt.practiceTestId);
+  const questions = getLiveQuestions(attempt.practiceTestId);
   const scored = calculateAttemptResult(questions, attempt.answers);
   const submittedAt = new Date().toISOString();
   const next: AttemptRecord = {
@@ -174,7 +174,7 @@ async function requireInProgress(attemptId: string) {
 }
 
 function toResult(attempt: AttemptRecord): AttemptResult {
-  const questions = getQuestionsForTest(attempt.practiceTestId);
+  const questions = getLiveQuestions(attempt.practiceTestId);
   const scored = calculateAttemptResult(questions, attempt.answers);
   const byId = new Map(attempt.answers.map((answer) => [answer.questionId, answer]));
   return {

@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { certificationBySlug, practiceTestBySlug } from "@/lib/catalog/data";
+import { findLivePracticeTest, vendorIsPublic } from "@/lib/admin/catalog-store";
 import { examPath } from "@/lib/catalog/seed-catalog";
 import { createMetadata } from "@/lib/seo";
 import { formatInrFromPaise } from "@/lib/utils";
@@ -17,14 +17,27 @@ import type { Route } from "next";
 import { auth } from "@/auth";
 import { userOwnsPracticeTest } from "@/lib/commerce/checkout";
 
+function publicTest(slug: string) {
+  const catalog = findLivePracticeTest(slug);
+  if (
+    !catalog ||
+    !catalog.exam.isPublished ||
+    !catalog.test.isPublished ||
+    !vendorIsPublic(catalog.vendorSlug)
+  ) {
+    return null;
+  }
+  return catalog;
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const test = practiceTestBySlug(slug);
-  if (!test) {
+  const catalog = publicTest(slug);
+  if (!catalog) {
     return createMetadata({
       title: "Practice test not found",
       description: "That practice test is not in the catalog.",
@@ -34,9 +47,9 @@ export async function generateMetadata({
   }
 
   return createMetadata({
-    title: test.title,
-    description: test.summary,
-    path: `/practice-tests/${test.slug}`,
+    title: catalog.test.title,
+    description: catalog.test.summary,
+    path: `/practice-tests/${catalog.test.slug}`,
   });
 }
 
@@ -46,12 +59,12 @@ export default async function PracticeTestDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const test = practiceTestBySlug(slug);
-  if (!test) {
+  const catalog = publicTest(slug);
+  if (!catalog) {
     notFound();
   }
 
-  const cert = certificationBySlug(test.certificationSlug);
+  const { test, exam, vendorSlug } = catalog;
   const session = await auth();
   const owned = session?.user?.id ? await userOwnsPracticeTest(session.user.id, test.slug) : false;
 
@@ -61,16 +74,11 @@ export default async function PracticeTestDetailPage({
         <p className="text-sm text-muted-foreground">
           <Link href="/practice-tests" className="hover:text-foreground">
             Practice tests
+          </Link>{" "}
+          /{" "}
+          <Link href={examPath(vendorSlug, exam.slug) as Route} className="hover:text-foreground">
+            {exam.code}
           </Link>
-          {cert ? (
-            <>
-              {" "}
-              /{" "}
-              <Link href={examPath(cert.providerSlug, cert.slug) as Route} className="hover:text-foreground">
-                {cert.code}
-              </Link>
-            </>
-          ) : null}
         </p>
         <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{test.title}</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">{test.description}</p>
@@ -93,7 +101,7 @@ export default async function PracticeTestDetailPage({
           {owned ? (
             <Button
               nativeButton={false}
-              render={<Link href={`/practice-test/${cert?.providerSlug}/${cert?.slug}/start` as Route} />}
+              render={<Link href={`/practice-test/${vendorSlug}/${exam.slug}/start` as Route} />}
               className="w-full"
             >
               Start practice test

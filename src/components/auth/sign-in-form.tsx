@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/auth/types";
+import { ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/auth/types";
 import { route } from "@/lib/routes";
 
 export function SignInForm({ callbackUrl }: { callbackUrl: string }) {
@@ -48,8 +48,8 @@ export function SignInForm({ callbackUrl }: { callbackUrl: string }) {
         <CardHeader>
           <CardTitle className="font-heading text-2xl">Sign in</CardTitle>
           <CardDescription>
-            Demo account: {DEMO_EMAIL} / {DEMO_PASSWORD}. New accounts are stored on this server so
-            you can sign back in without Postgres.
+            Demo learner: {DEMO_EMAIL} / {DEMO_PASSWORD}. Admin: {ADMIN_EMAIL} / {ADMIN_PASSWORD}.
+            New learner accounts cannot open /admin.
           </CardDescription>
         </CardHeader>
         <CardContent>

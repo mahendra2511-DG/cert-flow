@@ -458,13 +458,17 @@ function generatedBank(testSlug: string, examName: string, examCode: string): Ex
   ];
 }
 
-export function getQuestionsForTest(testSlug: string): ExamQuestion[] {
+export function getBaseQuestionsForTest(testSlug: string): ExamQuestion[] {
   if (authoredBanks[testSlug]) {
     return authoredBanks[testSlug];
   }
   const exam = seedExams.find((item) => item.tests.some((test) => test.slug === testSlug));
   const test = exam?.tests.find((item) => item.slug === testSlug);
   return generatedBank(testSlug, exam?.name ?? "this certification", exam?.code ?? test?.title ?? "exam");
+}
+
+export function getQuestionsForTest(testSlug: string): ExamQuestion[] {
+  return getBaseQuestionsForTest(testSlug);
 }
 
 export function getQuestionById(testSlug: string, questionId: string) {

@@ -16,6 +16,8 @@ export default function robots() {
         "/exam",
         "/results",
         "/checkout",
+        "/admin",
+        "/forbidden",
         "/api",
         "/practice-test/*/start",
         "/practice-test/*/question",
