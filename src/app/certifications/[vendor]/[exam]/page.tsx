@@ -40,7 +40,7 @@ export async function generateMetadata({
   if (!detail) {
     return createMetadata({
       title: "Exam not found",
-      description: "That certification exam is not in the PrepHarbor catalog.",
+      description: "That certification exam is not in the Certiva catalog.",
       path: `/certifications/${vendor}/${exam}`,
       noIndex: true,
     });
@@ -50,7 +50,7 @@ export async function generateMetadata({
     title: detail.seoTitle || `${detail.code} ${detail.name} practice test`,
     description:
       detail.seoDescription ||
-      `Timed ${detail.code} practice on PrepHarbor: ${detail.summary} ${detail.durationMin} minutes, original questions, INR checkout.`,
+      `Timed ${detail.code} practice on Certiva: ${detail.summary} ${detail.durationMin} minutes, original questions, INR checkout.`,
     path: detail.href,
   });
 }
@@ -72,7 +72,7 @@ export default async function ExamDetailPage({
   const examFaqs = [
     ...detail.faqs,
     {
-      question: `How long is the ${detail.code} sitting on PrepHarbor?`,
+      question: `How long is the ${detail.code} sitting on Certiva?`,
       answer: `The published practice test is ${detail.durationMin} minutes with a ${detail.passingScore}% pass mark. Time remaining is shown in the exam chrome and the sitting auto-submits at zero.`,
     },
   ];

@@ -30,11 +30,11 @@ export function buildStudyPdf(input: {
     input.title,
     `${input.examCode} · ${input.examName}`,
     `Version ${input.version} · ${input.questionCount} practice items in the companion bank`,
-    "This PDF is original PrepHarbor study material. It is not an official vendor exam, dump, or leaked item set.",
+    "This PDF is original Certiva study material. It is not an official vendor exam, dump, or leaked item set.",
     "Use it after you purchase premium access. Pair the notes with timed sittings and explanation review.",
     "Domains to revisit: identity, networking, storage, operations, and shared responsibility.",
     "Study loop: sit a timed set, write why near-miss options fail, then retake only the weak domains.",
-    `Generated for licensed PrepHarbor learners. Redistribution is not permitted.`,
+    `Generated for licensed Certiva learners. Redistribution is not permitted.`,
   ];
 
   const lineOps: string[] = ["BT", "/F1 16 Tf", "72 760 Td", `(${escapePdf(paragraphs[0] ?? "")}) Tj`];

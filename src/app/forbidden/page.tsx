@@ -5,7 +5,7 @@ import { route } from "@/lib/routes";
 
 export const metadata = createMetadata({
   title: "Access denied",
-  description: "This area is limited to PrepHarbor administrators.",
+  description: "This area is limited to Certiva administrators.",
   path: "/forbidden",
   noIndex: true,
 });

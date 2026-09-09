@@ -3,7 +3,7 @@ import { contentMetadata, ContentPage } from "@/components/layout/content-page";
 
 export const metadata = contentMetadata(
   "Privacy",
-  "How PrepHarbor handles account and payment information.",
+  "How Certiva handles account and payment information.",
   "/privacy",
 );
 
@@ -11,12 +11,12 @@ export default function PrivacyPage() {
   return (
     <ContentPage
       title="Privacy"
-      description="How PrepHarbor handles account and payment information."
+      description="How Certiva handles account and payment information."
       path="/privacy"
     >
       <p>
-        PrepHarbor stores the email and name you use to sign in, purchase records, and exam
-        attempts. Payment card data is processed by Razorpay and is not stored on PrepHarbor
+        Certiva stores the email and name you use to sign in, purchase records, and exam
+        attempts. Payment card data is processed by Razorpay and is not stored on Certiva
         servers.
       </p>
       <p>

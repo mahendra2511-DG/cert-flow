@@ -146,7 +146,7 @@ export function CheckoutPayButton({
         key: order.keyId,
         amount: order.amountPaise,
         currency: order.currency,
-        name: "PrepHarbor",
+        name: "Certiva",
         description: `${order.test.examCode} · ${order.test.title}`,
         order_id: order.razorpayOrderId,
         prefill: order.prefill,

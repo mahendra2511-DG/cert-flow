@@ -33,7 +33,7 @@ export function HomeHero({
           Independent practice marketplace
         </Badge>
         <h1 className="mt-5 max-w-3xl text-4xl leading-[1.1] font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-          Prepare smarter. Practice better. Get certified.
+          Practice. Prepare. Certify.
         </h1>
         <p className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
           Practice with high-quality certification questions, detailed explanations, and realistic

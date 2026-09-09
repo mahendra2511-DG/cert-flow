@@ -2,7 +2,7 @@ import { contentMetadata, ContentPage } from "@/components/layout/content-page";
 
 export const metadata = contentMetadata(
   "Refund Policy",
-  "How PrepHarbor handles refunds for digital practice tests.",
+  "How Certiva handles refunds for digital practice tests.",
   "/refund",
 );
 

@@ -2,7 +2,7 @@ import { contentMetadata, ContentPage } from "@/components/layout/content-page";
 
 export const metadata = contentMetadata(
   "Contact",
-  "Reach the PrepHarbor team about catalog, billing, or account access.",
+  "Reach the Certiva team about catalog, billing, or account access.",
   "/contact",
 );
 

@@ -144,7 +144,7 @@ async function ensureAdminUser() {
   const user: StoredUser = {
     id: ADMIN_USER_ID,
     email: ADMIN_EMAIL,
-    name: "PrepHarbor Admin",
+    name: "Certiva Admin",
     passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 10),
     createdAt: "2026-01-06T09:00:00.000Z",
     notifyProductUpdates: true,

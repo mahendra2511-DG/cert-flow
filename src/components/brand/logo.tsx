@@ -23,7 +23,7 @@ export function LogoMark({ className }: { className?: string }) {
 export function BrandWordmark({ className }: { className?: string }) {
   return (
     <span className={cn("font-heading text-lg font-semibold tracking-tight", className)}>
-      PrepHarbor
+      Certiva
     </span>
   );
 }

@@ -46,7 +46,7 @@ export async function generateMetadata({
   }
   return createMetadata({
     title: `${detail.code} timed practice test`,
-    description: `Sit the ${detail.code} ${detail.name} practice test on PrepHarbor: timed questions, a score, and explanations after purchase.`,
+    description: `Sit the ${detail.code} ${detail.name} practice test on Certiva: timed questions, a score, and explanations after purchase.`,
     path: practiceTestPath(vendor, exam),
   });
 }

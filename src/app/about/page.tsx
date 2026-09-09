@@ -3,7 +3,7 @@ import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 
 export const metadata = createMetadata({
   title: "About",
-  description: "What PrepHarbor is and how this marketplace is structured.",
+  description: "What Certiva is and how this marketplace is structured.",
   path: "/about",
 });
 
@@ -11,10 +11,10 @@ export default function AboutPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6">
       <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: "About" }]} />
-      <h1 className="mt-4 text-3xl font-semibold">About PrepHarbor</h1>
+      <h1 className="mt-4 text-3xl font-semibold">About Certiva</h1>
       <div className="mt-4 space-y-4 text-muted-foreground">
         <p>
-          PrepHarbor is an original certification practice-test marketplace. The information
+          Certiva is an original certification practice-test marketplace. The information
           architecture follows a familiar study-site pattern: search a catalog, open a
           certification, inspect a practice test, purchase access, take the exam, then review
           results.

@@ -37,7 +37,7 @@ export async function generateMetadata({
   if (category) {
     return createMetadata({
       title: `${category.name} certification practice exams`,
-      description: `${category.description} Browse original PrepHarbor sittings for this category, then open an exam for format, price, and checkout.`,
+      description: `${category.description} Browse original Certiva sittings for this category, then open an exam for format, price, and checkout.`,
       path: "/certifications",
       canonicalPath: "/certifications",
       noIndex: hasSearch || filters.page > 1,
@@ -196,9 +196,9 @@ export default async function CertificationsPage({
           (length, format, pass mark) and links to the practice test. Pay once in INR to unlock the
           browser exam, retakes, and explanations.
         </p>
-        <h3 className="mt-8 text-lg font-semibold">What PrepHarbor does not sell</h3>
+        <h3 className="mt-8 text-lg font-semibold">What Certiva does not sell</h3>
         <p className="mt-2 text-muted-foreground">
-          These are not official vendor exams, vouchers, or dumps of live items. Pair a PrepHarbor
+          These are not official vendor exams, vouchers, or dumps of live items. Pair a Certiva
           sitting with the provider’s current public skill outline.
         </p>
       </section>

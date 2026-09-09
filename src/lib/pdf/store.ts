@@ -87,7 +87,7 @@ export function ensureSeedPdf(vendorSlug: string, examSlug: string) {
     vendorSlug,
     examSlug,
     title: `${context.exam.code} Premium Study Notes`,
-    description: "Original PrepHarbor study notes packaged as a premium PDF. Not a vendor exam dump.",
+    description: "Original Certiva study notes packaged as a premium PDF. Not a vendor exam dump.",
     version: "2026.1",
     status: "published",
     questionCount: context.test.questionCount,

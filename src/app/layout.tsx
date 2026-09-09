@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   }),
   metadataBase: new URL(siteUrl()),
   title: {
-    default: `${brand.name} · Certification practice tests`,
+    default: `${brand.name} · ${brand.tagline}`,
     template: `%s · ${brand.name}`,
   },
   applicationName: brand.name,

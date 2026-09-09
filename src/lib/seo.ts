@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { siteUrl as publicSiteUrl } from "@/lib/site-url";
 
 export const brand = {
-  name: "PrepHarbor",
-  tagline: "Practice tests built for how professionals actually study.",
+  name: "Certiva",
+  tagline: "Practice. Prepare. Certify.",
   description:
-    "PrepHarbor is a certification practice-test marketplace. Browse exams by provider, preview a test, purchase access, then sit the exam online and review explanations.",
+    "Certiva is a certification practice-test marketplace. Practice. Prepare. Certify. Browse exams by provider, start 20 free questions, then unlock premium banks and PDFs.",
 };
 
 export function absoluteUrl(path = "/") {
@@ -44,7 +44,7 @@ export function createMetadata({
   const canonical = absoluteUrl(canonicalPath ?? path);
   const summary = truncateMeta(description);
   const isHome = (canonicalPath ?? path) === "/";
-  const displayTitle = isHome ? `${brand.name} · Certification practice tests` : `${title} · ${brand.name}`;
+  const displayTitle = isHome ? `${brand.name} · ${brand.tagline}` : `${title} · ${brand.name}`;
   const ogImage = absoluteUrl("/opengraph-image");
 
   return {

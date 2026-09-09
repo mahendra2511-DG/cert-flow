@@ -60,7 +60,8 @@ export function SiteFooter() {
             <BrandWordmark />
           </Link>
           <p className="max-w-xs text-sm text-muted-foreground">
-            Original practice tests for professional certifications. Independent of every exam vendor.
+            Practice. Prepare. Certify. Original practice tests for professional certifications,
+            independent of every exam vendor.
           </p>
         </div>
         {footerGroups.map((group) => (
@@ -83,7 +84,7 @@ export function SiteFooter() {
       </div>
       <Separator />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>© {new Date().getFullYear()} PrepHarbor. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Certiva. All rights reserved.</p>
         <nav className="flex flex-wrap gap-x-4 gap-y-1" aria-label="Legal">
           <Link href="/privacy" className="hover:text-foreground">
             Privacy

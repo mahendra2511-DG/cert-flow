@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "PrepHarbor — certification practice tests";
+export const alt = "Certiva — Practice. Prepare. Certify.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -27,7 +27,7 @@ export default function OpenGraphImage() {
             color: "#d7efe8",
           }}
         >
-          PrepHarbor
+          Certiva
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div
@@ -40,7 +40,7 @@ export default function OpenGraphImage() {
               maxWidth: 900,
             }}
           >
-            Sit a realistic practice exam.
+            Practice. Prepare. Certify.
           </div>
           <div style={{ display: "flex", fontSize: 28, color: "#e4ddd0", maxWidth: 820 }}>
             Original certification practice tests with timed sittings, scores, and explanations.

@@ -200,9 +200,9 @@ const stems: Array<{ prompt: string; explanation: string; correct: string; wrong
     wrong: ["Batch payroll export", "iSCSI login", "A color lookup table"],
   },
   {
-    prompt: "Which statement is true about PrepHarbor AB-100 practice items?",
+    prompt: "Which statement is true about Certiva AB-100 practice items?",
     explanation: "They are original study scenarios. They are not official Microsoft exam dumps.",
-    correct: "They are original PrepHarbor scenarios for study, not official exam content",
+    correct: "They are original Certiva scenarios for study, not official exam content",
     wrong: ["They are leaked live exam items", "They replace a vendor certification", "They must be shared on forums"],
   },
 ];

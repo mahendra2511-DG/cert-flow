@@ -65,7 +65,7 @@ export const seedVendors: SeedVendor[] = [
     accent: "from-indigo-100 to-white",
     featured: true,
     longDescription:
-      "PrepHarbor’s Microsoft catalog covers Azure fundamentals and administration plus Microsoft 365 literacy. Practice items are original scenarios written against publicly documented skill areas—not vendor exam dumps.",
+      "Certiva’s Microsoft catalog covers Azure fundamentals and administration plus Microsoft 365 literacy. Practice items are original scenarios written against publicly documented skill areas—not vendor exam dumps.",
   },
   {
     slug: "aws",
@@ -75,7 +75,7 @@ export const seedVendors: SeedVendor[] = [
     accent: "from-amber-100 to-white",
     featured: true,
     longDescription:
-      "Amazon Web Services practice on PrepHarbor focuses on well-architected decisions, billing literacy, and operational trade-offs. Sit a timed test, then review why a cheaper or more available option wins.",
+      "Amazon Web Services practice on Certiva focuses on well-architected decisions, billing literacy, and operational trade-offs. Sit a timed test, then review why a cheaper or more available option wins.",
   },
   {
     slug: "google-cloud",
@@ -95,7 +95,7 @@ export const seedVendors: SeedVendor[] = [
     accent: "from-sky-100 to-white",
     featured: true,
     longDescription:
-      "Cisco practice on PrepHarbor is built around campus forwarding, wireless, and automation basics. Items ask for a next hop or protocol choice, then explain the near-miss.",
+      "Cisco practice on Certiva is built around campus forwarding, wireless, and automation basics. Items ask for a next hop or protocol choice, then explain the near-miss.",
   },
   {
     slug: "comptia",
@@ -105,7 +105,7 @@ export const seedVendors: SeedVendor[] = [
     accent: "from-rose-100 to-white",
     featured: true,
     longDescription:
-      "CompTIA tracks on PrepHarbor stay vendor-neutral. Security+ and Network+ sets check whether you can pick a control or a troubleshooting step, not recite a glossary.",
+      "CompTIA tracks on Certiva stay vendor-neutral. Security+ and Network+ sets check whether you can pick a control or a troubleshooting step, not recite a glossary.",
   },
   {
     slug: "cloud-native",
@@ -124,7 +124,7 @@ export const seedVendors: SeedVendor[] = [
     accent: "from-slate-100 to-white",
     featured: true,
     description: "Virtualization and cloud operations tracks.",
-    longDescription: "VMware-oriented practice on PrepHarbor stays conceptual and original.",
+    longDescription: "VMware-oriented practice on Certiva stays conceptual and original.",
   },
   {
     slug: "oracle",
@@ -178,7 +178,7 @@ export const seedVendors: SeedVendor[] = [
     accent: "from-amber-100 to-white",
     featured: true,
     description: "Firewall and threat-prevention fundamentals.",
-    longDescription: "Palo Alto Networks practice will remain original to PrepHarbor.",
+    longDescription: "Palo Alto Networks practice will remain original to Certiva.",
   },
 ];
 
@@ -259,7 +259,7 @@ const sharedExamFaqs: CatalogFaq[] = [
   {
     question: "Is this an official vendor exam?",
     answer:
-      "No. PrepHarbor sells independent practice tests. Passing a PrepHarbor sitting does not confer a vendor credential.",
+      "No. Certiva sells independent practice tests. Passing a Certiva sitting does not confer a vendor credential.",
   },
   {
     question: "What does a purchase include?",
@@ -286,7 +286,7 @@ export const seedExams: SeedExam[] = [
     isPopular: true,
     seoTitle: "AZ-900 Azure Fundamentals practice test",
     seoDescription:
-      "Timed AZ-900 practice with original questions, explanations, and INR checkout on PrepHarbor.",
+      "Timed AZ-900 practice with original questions, explanations, and INR checkout on Certiva.",
     outcomes: [
       "Describe cloud concepts and shared responsibility",
       "Identify core Azure services and management tools",
@@ -320,7 +320,7 @@ export const seedExams: SeedExam[] = [
     name: "Azure AI Fundamentals Practice",
     summary: "Responsible AI concepts, Azure AI services, and original scenario practice.",
     description:
-      "Original PrepHarbor items for people exploring Azure AI literacy. Prompts are fictional workplace scenarios—not vendor exam dumps. The first 20 questions are free; premium unlocks the remaining bank and a downloadable study PDF.",
+      "Original Certiva items for people exploring Azure AI literacy. Prompts are fictional workplace scenarios—not vendor exam dumps. The first 20 questions are free; premium unlocks the remaining bank and a downloadable study PDF.",
     level: "Fundamentals",
     durationMin: 45,
     passingScore: 70,
@@ -332,7 +332,7 @@ export const seedExams: SeedExam[] = [
     premiumQuestionCount: 30,
     seoTitle: "AB-100 Azure AI Fundamentals practice test",
     seoDescription:
-      "Practice AB-100 with 20 free PrepHarbor questions, then unlock the full bank, explanations, and premium PDF.",
+      "Practice AB-100 with 20 free Certiva questions, then unlock the full bank, explanations, and premium PDF.",
     outcomes: [
       "Describe responsible AI principles in workplace scenarios",
       "Choose an Azure AI service that fits a constraint",
@@ -414,7 +414,7 @@ export const seedExams: SeedExam[] = [
     isPopular: false,
     seoTitle: "MS-900 Microsoft 365 Fundamentals practice",
     seoDescription:
-      "Practice Microsoft 365 fundamentals with original PrepHarbor questions and explanations.",
+      "Practice Microsoft 365 fundamentals with original Certiva questions and explanations.",
     outcomes: [
       "Describe Microsoft 365 apps and services",
       "Explain security, compliance, and privacy options",
@@ -536,7 +536,7 @@ export const seedExams: SeedExam[] = [
     isPopular: true,
     seoTitle: "Google Cloud Associate Cloud Engineer practice",
     seoDescription:
-      "ACE practice covering deploy, IAM, and operations with timed review on PrepHarbor.",
+      "ACE practice covering deploy, IAM, and operations with timed review on Certiva.",
     outcomes: [
       "Set up projects, billing, and IAM",
       "Deploy and monitor compute workloads",
@@ -659,7 +659,7 @@ export const seedExams: SeedExam[] = [
     isPopular: false,
     seoTitle: "CompTIA Network+ N10-009 practice test",
     seoDescription:
-      "Network+ practice for connectivity and troubleshooting with original PrepHarbor items.",
+      "Network+ practice for connectivity and troubleshooting with original Certiva items.",
     outcomes: [
       "Trace a path across L2 and L3",
       "Choose a troubleshooting step with least disruption",
@@ -699,7 +699,7 @@ export const seedExams: SeedExam[] = [
     isPopular: false,
     seoTitle: "CKA conceptual practice test",
     seoDescription:
-      "Certified Kubernetes Administrator conceptual practice with explanations on PrepHarbor.",
+      "Certified Kubernetes Administrator conceptual practice with explanations on Certiva.",
     outcomes: [
       "Reason about scheduling and workload placement",
       "Describe cluster networking and services",

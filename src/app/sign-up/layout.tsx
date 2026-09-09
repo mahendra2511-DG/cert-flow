@@ -3,7 +3,7 @@ import { createMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createMetadata({
   title: "Sign up",
-  description: "Create a PrepHarbor account.",
+  description: "Create a Certiva account.",
   path: "/sign-up",
   noIndex: true,
 });

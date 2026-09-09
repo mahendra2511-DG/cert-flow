@@ -3,7 +3,7 @@ import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
   title: "Forgot password",
-  description: "Reset your PrepHarbor password.",
+  description: "Reset your Certiva password.",
   path: "/forgot-password",
   noIndex: true,
 });

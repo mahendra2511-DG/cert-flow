@@ -39,7 +39,7 @@ export default async function OrderReceiptPage({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-sm text-muted-foreground">PrepHarbor</p>
+              <p className="text-sm text-muted-foreground">Certiva</p>
               <CardTitle>Tax invoice / receipt</CardTitle>
             </div>
             <Badge variant={order.status === "PAID" ? "default" : "secondary"}>{order.status}</Badge>

@@ -27,8 +27,8 @@ export function WhyChooseUs() {
       <PageContainer>
         <SectionHeader
           titleId="why-heading"
-          eyebrow="Why PrepHarbor"
-          title="Built for how professionals actually study"
+          eyebrow="Why Certiva"
+          title="Practice. Prepare. Certify."
           description="Free practice first. Premium when the first 20 are not enough."
         />
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

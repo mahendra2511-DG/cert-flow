@@ -6,7 +6,7 @@ import { route } from "@/lib/routes";
 
 export const metadata = createMetadata({
   title: "Sign in",
-  description: "Sign in to PrepHarbor to open your dashboard and purchased tests.",
+  description: "Sign in to Certiva to open your dashboard and purchased tests.",
   path: "/sign-in",
   noIndex: true,
 });

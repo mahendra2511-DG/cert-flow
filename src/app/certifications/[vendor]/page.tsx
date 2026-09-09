@@ -33,7 +33,7 @@ export async function generateMetadata({
   if (!detail) {
     return createMetadata({
       title: "Provider not found",
-      description: "That certification provider is not in the PrepHarbor catalog.",
+      description: "That certification provider is not in the Certiva catalog.",
       path: `/certifications/${vendor}`,
       noIndex: true,
     });

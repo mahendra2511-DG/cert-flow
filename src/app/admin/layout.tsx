@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createMetadata({
   title: "Admin",
-  description: "PrepHarbor marketplace administration.",
+  description: "Certiva marketplace administration.",
   path: "/admin",
   noIndex: true,
 });

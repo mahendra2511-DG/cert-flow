@@ -435,7 +435,7 @@ function generatedBank(testSlug: string, examName: string, examCode: string): Ex
     multi(
       testSlug,
       7,
-      "Select TWO things a score report is useful for after a PrepHarbor sitting.",
+      "Select TWO things a score report is useful for after a Certiva sitting.",
       "Use the report to find weak domains and restudy those explanations. It is not a vendor certificate.",
       [
         ["Identifying weak domains", true],

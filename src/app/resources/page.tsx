@@ -3,7 +3,7 @@ import { contentMetadata, ContentPage } from "@/components/layout/content-page";
 
 export const metadata = contentMetadata(
   "Resources",
-  "How to use PrepHarbor practice tests alongside official vendor documentation.",
+  "How to use Certiva practice tests alongside official vendor documentation.",
   "/resources",
 );
 
@@ -15,14 +15,14 @@ export default function ResourcesPage() {
       path="/resources"
     >
       <p>
-        PrepHarbor is for sitting exams and reviewing misses. Read the official outline for the
-        credential you want, then use a PrepHarbor test to check whether you can apply it under
+        Certiva is for sitting exams and reviewing misses. Read the official outline for the
+        credential you want, then use a Certiva test to check whether you can apply it under
         time.
       </p>
       <ul className="list-disc space-y-2 pl-5">
         <li>
           <Link href="/#how-it-works" className="text-foreground underline-offset-4 hover:underline">
-            How a PrepHarbor sitting works
+            How a Certiva sitting works
           </Link>
         </li>
         <li>

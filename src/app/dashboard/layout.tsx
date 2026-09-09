@@ -5,7 +5,7 @@ import { createMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createMetadata({
   title: "Dashboard",
-  description: "Your PrepHarbor practice tests, attempts, and account.",
+  description: "Your Certiva practice tests, attempts, and account.",
   path: "/dashboard",
   noIndex: true,
 });

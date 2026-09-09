@@ -1,6 +1,6 @@
-# PrepHarbor
+# Certiva
 
-PrepHarbor is a certification practice-test marketplace. Learners browse exams by provider, open a certification, inspect a practice test, purchase access in INR, sit a timed exam in the browser, and review explanations.
+Certiva is a certification practice-test marketplace. **Practice. Prepare. Certify.** Learners browse exams by provider, open a certification, inspect a practice test, purchase access in INR, sit a timed exam in the browser, and review explanations.
 
 The product is independent. It is not affiliated with any certification vendor and does not copy third-party branding, assets, or proprietary exam content.
 

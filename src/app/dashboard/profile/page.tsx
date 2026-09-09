@@ -8,7 +8,7 @@ import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
   title: "Profile",
-  description: "Manage your PrepHarbor name, password, and account settings.",
+  description: "Manage your Certiva name, password, and account settings.",
   path: "/dashboard/profile",
   noIndex: true,
 });
