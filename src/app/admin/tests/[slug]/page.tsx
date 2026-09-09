@@ -1,11 +1,7 @@
-import { notFound } from "next/navigation";
-import { TestForm } from "@/components/admin/test-form";
-import { getTestAdmin } from "@/lib/admin/catalog-store";
+import { redirect } from "next/navigation";
+import { route } from "@/lib/routes";
 
-export default async function EditTestPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function LegacyEditTestPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  if (!getTestAdmin(slug)) {
-    notFound();
-  }
-  return <TestForm testSlug={slug} />;
+  redirect(route(`/admin/papers/${slug}`));
 }

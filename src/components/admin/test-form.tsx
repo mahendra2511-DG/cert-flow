@@ -11,7 +11,7 @@ export function TestForm({ testSlug }: { testSlug?: string }) {
   const exam = found?.exam;
   return (
     <div className="max-w-xl space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{test ? "Edit practice test" : "Create practice test"}</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">{test ? "Edit paper" : "Create paper"}</h1>
       <form action={saveTestAction} className="space-y-4">
         <input type="hidden" name="originalSlug" value={test?.slug ?? ""} />
         <div className="space-y-2">
@@ -31,7 +31,7 @@ export function TestForm({ testSlug }: { testSlug?: string }) {
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="title">Test name</Label>
+          <Label htmlFor="title">Paper name</Label>
           <Input id="title" name="title" required defaultValue={test?.title} />
         </div>
         <div className="space-y-2">
@@ -81,7 +81,38 @@ export function TestForm({ testSlug }: { testSlug?: string }) {
           <input type="checkbox" name="isPublished" defaultChecked={test?.isPublished ?? true} />
           Published
         </label>
-        <Button type="submit">Save test</Button>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="paperType">Paper type</Label>
+            <select
+              id="paperType"
+              name="paperType"
+              defaultValue={test?.paperType ?? "PREMIUM"}
+              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+            >
+              <option value="FREE">Free</option>
+              <option value="PREMIUM">Premium</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="selectionMethod">Question selection</Label>
+            <select
+              id="selectionMethod"
+              name="selectionMethod"
+              defaultValue={test?.selectionMethod ?? "RANDOM"}
+              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+            >
+              <option value="RANDOM">Random</option>
+              <option value="FIXED">Fixed questions</option>
+              <option value="CATEGORY">Category based</option>
+            </select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="categoryFilter">Category filter (for category selection)</Label>
+          <Input id="categoryFilter" name="categoryFilter" defaultValue={test?.categoryFilter} />
+        </div>
+        <Button type="submit">Save paper</Button>
       </form>
     </div>
   );

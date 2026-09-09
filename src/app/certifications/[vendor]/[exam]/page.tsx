@@ -265,7 +265,7 @@ export default async function ExamDetailPage({
                 className="w-full"
                 render={<Link href={`/practice-test/${detail.vendorSlug}/${detail.examSlug}/free` as Route} />}
               >
-                Start 20 free questions
+                Start Free Practice
               </Button>
             </CardContent>
           </Card>

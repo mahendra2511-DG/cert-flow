@@ -1,5 +1,13 @@
 import { freeQuestionLimit, premiumSittingSize, type PracticeMode } from "@/lib/access";
-import { getExamAdmin, getLiveQuestions, vendorIsPublic } from "@/lib/admin/catalog-store";
+import {
+  getExamAdmin,
+  getLiveQuestions,
+  listExamQuestions,
+  vendorIsPublic,
+  type LiveExam,
+  type LiveQuestion,
+  type LiveTest,
+} from "@/lib/admin/catalog-store";
 import { pickSittingQuestions } from "@/lib/exam/pick";
 import { toPublicQuestion } from "@/lib/exam/questions";
 import { calculateAttemptResult } from "@/lib/exam/result-calculator";
@@ -11,16 +19,60 @@ function createId() {
   return `att_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function findExamContext(vendorSlug: string, examSlug: string) {
+export function findExamContext(vendorSlug: string, examSlug: string, mode?: PracticeMode) {
   const exam = getExamAdmin(vendorSlug, examSlug);
   if (!exam || !exam.isPublished || !vendorIsPublic(vendorSlug)) {
     return null;
   }
-  const test = exam.tests.find((item) => item.isPublished) ?? null;
-  if (!test) {
+  const published = exam.tests.filter((item) => item.isPublished);
+  if (published.length === 0) {
     return null;
   }
+  let test = published[0]!;
+  if (mode === "FREE") {
+    test = published.find((item) => item.paperType === "FREE") ?? published[0]!;
+  } else if (mode === "PREMIUM") {
+    test = published.find((item) => item.paperType === "PREMIUM") ?? published[0]!;
+  }
   return { exam, test };
+}
+
+function publishedBank(questions: LiveQuestion[]) {
+  return questions.filter((item) => item.status !== "draft");
+}
+
+export function selectSittingQuestions(exam: LiveExam, test: LiveTest, mode: PracticeMode): ExamQuestion[] {
+  const bank = publishedBank(listExamQuestions(exam.vendorSlug, exam.slug));
+  if (mode === "FREE") {
+    if (test.selectionMethod === "FIXED" && test.questionIds.length > 0) {
+      const byId = new Map(bank.map((item) => [item.id, item]));
+      return test.questionIds
+        .map((id) => byId.get(id))
+        .filter((item): item is LiveQuestion => Boolean(item && item.isFree))
+        .map((item, index) => ({ ...item, order: index + 1 }));
+    }
+    const marked = bank.filter((item) => item.isFree);
+    const source = marked.length > 0 ? marked : bank;
+    const limit = Math.min(freeQuestionLimit(exam.freeQuestionLimit), source.length);
+    return pickSittingQuestions(source, limit, { randomizeQuestions: false, randomizeOptions: false });
+  }
+
+  if (test.selectionMethod === "FIXED" && test.questionIds.length > 0) {
+    const byId = new Map(bank.map((item) => [item.id, item]));
+    return test.questionIds
+      .map((id) => byId.get(id))
+      .filter((item): item is LiveQuestion => Boolean(item))
+      .map((item, index) => ({ ...item, order: index + 1 }));
+  }
+  if (test.selectionMethod === "CATEGORY" && test.categoryFilter) {
+    const filtered = bank.filter((item) => item.category === test.categoryFilter);
+    return pickSittingQuestions(filtered, test.questionCount || filtered.length, {
+      randomizeQuestions: true,
+      randomizeOptions: true,
+    });
+  }
+  const count = premiumSittingSize(bank.length, exam.premiumQuestionCount ?? test.questionCount);
+  return pickSittingQuestions(bank, count, { randomizeQuestions: true, randomizeOptions: true });
 }
 
 export function examFreeLimit(vendorSlug: string, examSlug: string) {
@@ -61,7 +113,7 @@ export async function startAttempt(input: {
   userId: string;
   mode: PracticeMode;
 }): Promise<AttemptRecord> {
-  const context = findExamContext(input.vendorSlug, input.examSlug);
+  const context = findExamContext(input.vendorSlug, input.examSlug, input.mode);
   if (!context) {
     throw new Error("Exam not found");
   }
@@ -71,16 +123,7 @@ export async function startAttempt(input: {
     return existing;
   }
 
-  const bank = getLiveQuestions(context.test.slug);
-  const count =
-    input.mode === "FREE"
-      ? Math.min(freeQuestionLimit(context.exam.freeQuestionLimit), bank.length)
-      : premiumSittingSize(bank.length, context.exam.premiumQuestionCount ?? context.test.questionCount);
-
-  const sitting = pickSittingQuestions(bank, count, {
-    randomizeQuestions: input.mode === "PREMIUM",
-    randomizeOptions: input.mode === "PREMIUM",
-  });
+  const sitting = selectSittingQuestions(context.exam, context.test, input.mode);
 
   const now = new Date();
   const minutes = input.mode === "FREE" ? Math.min(context.test.timeLimitMin, 40) : context.test.timeLimitMin;
@@ -240,25 +283,17 @@ function toResult(attempt: AttemptRecord): AttemptResult {
 }
 
 export function publicFreeQuestions(vendorSlug: string, examSlug: string) {
-  const context = findExamContext(vendorSlug, examSlug);
+  const context = findExamContext(vendorSlug, examSlug, "FREE");
   if (!context) {
     return null;
   }
-  const bank = getLiveQuestions(context.test.slug);
-  const limit = Math.min(freeQuestionLimit(context.exam.freeQuestionLimit), bank.length);
-  return pickSittingQuestions(bank, limit, { randomizeQuestions: false, randomizeOptions: false }).map(
-    toPublicQuestion,
-  );
+  return selectSittingQuestions(context.exam, context.test, "FREE").map(toPublicQuestion);
 }
 
 export function publicPremiumQuestions(vendorSlug: string, examSlug: string) {
-  const context = findExamContext(vendorSlug, examSlug);
+  const context = findExamContext(vendorSlug, examSlug, "PREMIUM");
   if (!context) {
     return null;
   }
-  const bank = getLiveQuestions(context.test.slug);
-  const count = premiumSittingSize(bank.length, context.exam.premiumQuestionCount ?? context.test.questionCount);
-  return pickSittingQuestions(bank, count, { randomizeQuestions: false, randomizeOptions: false }).map(
-    toPublicQuestion,
-  );
+  return selectSittingQuestions(context.exam, context.test, "PREMIUM").map(toPublicQuestion);
 }

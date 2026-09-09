@@ -1,5 +1,6 @@
-import { TestForm } from "@/components/admin/test-form";
+import { redirect } from "next/navigation";
+import { route } from "@/lib/routes";
 
-export default function NewTestPage() {
-  return <TestForm />;
+export default function LegacyNewTestPage() {
+  redirect(route("/admin/papers/new"));
 }

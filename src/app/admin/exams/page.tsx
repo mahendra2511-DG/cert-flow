@@ -20,6 +20,9 @@ export default function AdminExamsPage() {
             Vendor, code, price, duration, SEO, and publish status for each certification exam.
           </p>
         </div>
+        <Button nativeButton={false} variant="outline" render={<Link href={route("/admin/content/wizard")} />}>
+          + Add new exam
+        </Button>
         <Button nativeButton={false} render={<Link href={route("/admin/exams/new")} />}>
           Create exam
         </Button>
@@ -66,6 +69,14 @@ export default function AdminExamsPage() {
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap justify-end gap-2">
+                      <Button
+                        nativeButton={false}
+                        size="sm"
+                        variant="outline"
+                        render={<Link href={route(`/admin/exams/${exam.vendorSlug}/${exam.slug}/content`)} />}
+                      >
+                        Content
+                      </Button>
                       <Button
                         nativeButton={false}
                         size="sm"

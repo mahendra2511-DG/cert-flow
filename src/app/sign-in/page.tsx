@@ -28,7 +28,7 @@ export default async function SignInPage({
   const params = await searchParams;
   const callbackUrl = safeCallbackUrl(params.callbackUrl);
   if (session?.user) {
-    if (callbackUrl.startsWith("/admin") && session.user.role !== "admin") {
+    if (callbackUrl.startsWith("/admin") && session.user.role !== "admin" && session.user.role !== "editor") {
       redirect(route("/forbidden"));
     }
     redirect(route(callbackUrl));

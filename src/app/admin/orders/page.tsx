@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui-patterns/empty-state";
 import { listAllOrders } from "@/lib/commerce/order-store";
@@ -5,6 +6,7 @@ import { listUsers } from "@/lib/auth/user-store";
 import { formatDate, formatInr } from "@/lib/format";
 
 export default async function AdminOrdersPage() {
+  await requireAdmin();
   const [orders, users] = await Promise.all([listAllOrders(), listUsers()]);
   const names = new Map(users.map((user) => [user.id, user]));
 

@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { buildStudyPdf } from "@/lib/pdf/document";
@@ -17,8 +17,12 @@ export type PremiumPdfRecord = {
   status: "published" | "draft";
   questionCount: number;
   updatedAt: string;
+  createdAt: string;
   filename: string;
   storageName: string;
+  fileSize: number;
+  downloadCount: number;
+  pdfType: "PREMIUM_PDF";
 };
 
 type StoreFile = { items: PremiumPdfRecord[] };
@@ -115,12 +119,16 @@ export function savePremiumPdf(input: {
     examSlug: input.examSlug,
     title: input.title,
     description: input.description,
-    version: input.version,
+    version: input.version || bumpPdfVersion(previous?.version),
     status: input.status,
     questionCount: input.questionCount,
     updatedAt: new Date().toISOString(),
+    createdAt: previous?.createdAt ?? new Date().toISOString(),
     filename: input.filename,
     storageName,
+    fileSize: input.bytes.length,
+    downloadCount: previous?.downloadCount ?? 0,
+    pdfType: "PREMIUM_PDF",
   };
   memory.__prepharborPdfs = [record, ...items.filter((item) => item.id !== id)];
   persist();
@@ -143,4 +151,44 @@ export function deletePremiumPdf(vendorSlug: string, examSlug: string) {
 
 export function readPremiumPdfBytes(record: PremiumPdfRecord) {
   return readFileSync(path.join(DIR, record.storageName));
+}
+
+export function incrementPdfDownload(record: PremiumPdfRecord) {
+  const items = load();
+  const current = items.find((item) => item.id === record.id);
+  if (!current) {
+    return record;
+  }
+  current.downloadCount = (current.downloadCount ?? 0) + 1;
+  persist();
+  return current;
+}
+
+export function togglePremiumPdfStatus(vendorSlug: string, examSlug: string) {
+  const current = getPremiumPdfAny(vendorSlug, examSlug);
+  if (!current) {
+    return null;
+  }
+  current.status = current.status === "published" ? "draft" : "published";
+  current.updatedAt = new Date().toISOString();
+  persist();
+  return current;
+}
+
+export function pdfFileBytesOnDisk(record: PremiumPdfRecord) {
+  try {
+    return statSync(path.join(DIR, record.storageName)).size;
+  } catch {
+    return record.fileSize ?? 0;
+  }
+}
+
+function bumpPdfVersion(previous?: string) {
+  if (!previous) {
+    return "v1.0";
+  }
+  const cleaned = previous.replace(/^v/i, "");
+  const [major] = cleaned.split(".");
+  const next = (Number(major) || 1) + 1;
+  return `v${next}.0`;
 }

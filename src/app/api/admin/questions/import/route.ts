@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireAdminApi } from "@/lib/auth/session";
+import { requireStaffApi } from "@/lib/auth/session";
 import { getTestAdmin, importQuestions } from "@/lib/admin/catalog-store";
 import { parseImportPayload, validateImportRows } from "@/lib/admin/import";
 import { jsonError, jsonOk, parseJson } from "@/lib/http";
@@ -12,7 +12,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const gate = await requireAdminApi();
+  const gate = await requireStaffApi();
   if (!gate.ok) {
     return gate.response;
   }

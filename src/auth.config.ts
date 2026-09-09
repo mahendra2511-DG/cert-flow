@@ -1,4 +1,15 @@
 import type { NextAuthConfig } from "next-auth";
+import { isAdminOnlyPath, isAdminRole, isStaffRole, normalizeRole } from "@/lib/auth/roles";
+
+function isAdminRoleOrEditorAllowed(pathname: string, role: string | undefined) {
+  if (isAdminRole(role)) {
+    return true;
+  }
+  if (role === "editor" && !isAdminOnlyPath(pathname)) {
+    return true;
+  }
+  return false;
+}
 
 const protectedPrefixes = ["/dashboard", "/account", "/library", "/checkout", "/admin"];
 
@@ -24,7 +35,9 @@ export const authConfig = {
         if (!isLoggedIn) {
           return false;
         }
-        if (auth?.user?.role !== "admin") {
+        const role = auth?.user?.role;
+        const allowed = isStaffRole(role) && (isAdminRoleOrEditorAllowed(pathname, role));
+        if (!allowed) {
           if (pathname.startsWith("/api/")) {
             return Response.json({ error: "Admin access required." }, { status: 403 });
           }
@@ -43,7 +56,7 @@ export const authConfig = {
         token.sub = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.role = (user as { role?: "admin" | "learner" }).role === "admin" ? "admin" : "learner";
+        token.role = normalizeRole((user as { role?: string }).role);
       }
       if (trigger === "update" && session) {
         const next = session as { name?: string; email?: string };
@@ -63,7 +76,7 @@ export const authConfig = {
         id: token.sub ?? "",
         name: token.name,
         email: token.email ?? "",
-        role: token.role === "admin" ? "admin" : "learner",
+        role: normalizeRole(typeof token.role === "string" ? token.role : "learner"),
       };
       return session;
     },

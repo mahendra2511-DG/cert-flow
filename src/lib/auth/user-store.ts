@@ -13,6 +13,7 @@ import {
   type PasswordResetToken,
   type StoredUser,
 } from "@/lib/auth/types";
+import { normalizeRole, type AppRole } from "@/lib/auth/roles";
 
 const FILE = path.join("/tmp", "prepharbor-users.json");
 
@@ -82,7 +83,7 @@ async function hydrate() {
 }
 
 function withRole(user: StoredUser): StoredUser {
-  return { ...user, role: user.role === "admin" ? "admin" : "learner" };
+  return { ...user, role: normalizeRole(user.role) };
 }
 
 async function persistUser(user: StoredUser) {
@@ -293,13 +294,13 @@ export async function listUsers() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function updateUserRole(id: string, role: "admin" | "learner") {
+export async function updateUserRole(id: string, role: AppRole) {
   await hydrate();
   const user = usersMem().get(id);
   if (!user) {
     throw new Error("NOT_FOUND");
   }
-  if (role === "learner") {
+  if (role !== "admin") {
     const admins = [...usersMem().values()].filter((item) => withRole(item).role === "admin");
     if (admins.length === 1 && admins[0]?.id === id) {
       throw new Error("LAST_ADMIN");

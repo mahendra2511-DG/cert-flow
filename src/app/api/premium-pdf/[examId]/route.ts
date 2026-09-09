@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { jsonError } from "@/lib/http";
 import { userOwnsExam } from "@/lib/commerce/checkout";
 import { findExamContext } from "@/lib/exam/engine";
-import { ensureSeedPdf, readPremiumPdfBytes } from "@/lib/pdf/store";
+import { getPremiumPdf, readPremiumPdfBytes, incrementPdfDownload } from "@/lib/pdf/store";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(
@@ -29,11 +29,12 @@ export async function GET(
     return jsonError("Purchase this exam to download the premium PDF.", 403);
   }
 
-  const record = ensureSeedPdf(vendor, exam);
+  const record = getPremiumPdf(vendor, exam);
   if (!record) {
     return jsonError("No premium PDF is published for this exam.", 404);
   }
 
+  incrementPdfDownload(record);
   const bytes = readPremiumPdfBytes(record);
   return new NextResponse(new Uint8Array(bytes), {
     status: 200,

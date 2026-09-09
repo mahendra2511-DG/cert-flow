@@ -1,10 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireStaff } from "@/lib/auth/session";
 import { getExamAdmin } from "@/lib/admin/catalog-store";
 import { buildStudyPdf } from "@/lib/pdf/document";
-import { deletePremiumPdf, savePremiumPdf } from "@/lib/pdf/store";
+import { deletePremiumPdf, savePremiumPdf, togglePremiumPdfStatus } from "@/lib/pdf/store";
 import { route } from "@/lib/routes";
 
 function str(form: FormData, key: string) {
@@ -12,7 +12,7 @@ function str(form: FormData, key: string) {
 }
 
 export async function savePremiumPdfAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   const [vendorSlug, examSlug] = str(formData, "examKey").split("/");
   const exam = vendorSlug && examSlug ? getExamAdmin(vendorSlug, examSlug) : null;
   if (!exam) {
@@ -32,7 +32,7 @@ export async function savePremiumPdfAction(formData: FormData) {
       title: str(formData, "title") || `${exam.code} Premium Study Notes`,
       examCode: exam.code,
       examName: exam.name,
-      version: str(formData, "version") || "2026.1",
+      version: str(formData, "version") || "v1.0",
       questionCount: exam.tests[0]?.questionCount ?? 0,
     });
   }
@@ -41,7 +41,7 @@ export async function savePremiumPdfAction(formData: FormData) {
     examSlug,
     title: str(formData, "title") || `${exam.code} Premium Study Notes`,
     description: str(formData, "description"),
-    version: str(formData, "version") || "2026.1",
+    version: str(formData, "version") || "v1.0",
     status: formData.get("isPublished") ? "published" : "draft",
     questionCount: exam.tests[0]?.questionCount ?? 0,
     filename,
@@ -51,7 +51,13 @@ export async function savePremiumPdfAction(formData: FormData) {
 }
 
 export async function deletePremiumPdfAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   deletePremiumPdf(str(formData, "vendorSlug"), str(formData, "examSlug"));
+  redirect(route("/admin/pdfs"));
+}
+
+export async function togglePremiumPdfAction(formData: FormData) {
+  await requireStaff();
+  togglePremiumPdfStatus(str(formData, "vendorSlug"), str(formData, "examSlug"));
   redirect(route("/admin/pdfs"));
 }

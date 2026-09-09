@@ -1,8 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireAdmin, requireStaff } from "@/lib/auth/session";
 import { updateUserRole } from "@/lib/auth/user-store";
+import { normalizeRole } from "@/lib/auth/roles";
 import {
   deleteExam,
   deleteQuestion,
@@ -12,6 +13,7 @@ import {
   saveQuestion,
   saveTest,
   saveVendor,
+  setPaperQuestionIds,
   toggleExamPublished,
   toggleTestPublished,
   toggleVendorPublished,
@@ -35,7 +37,7 @@ function paise(form: FormData, key: string) {
 }
 
 export async function saveCertificationAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   const slug = saveVendor({
     slug: str(formData, "slug") || undefined,
     name: str(formData, "name"),
@@ -47,19 +49,19 @@ export async function saveCertificationAction(formData: FormData) {
 }
 
 export async function deleteCertificationAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   deleteVendor(str(formData, "slug"));
   redirect(route("/admin/certifications"));
 }
 
 export async function toggleCertificationAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   toggleVendorPublished(str(formData, "slug"));
   redirect(route("/admin/certifications"));
 }
 
 export async function saveExamAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   saveExam({
     originalSlug: str(formData, "originalSlug") || undefined,
     vendorSlug: str(formData, "vendorSlug"),
@@ -82,19 +84,19 @@ export async function saveExamAction(formData: FormData) {
 }
 
 export async function deleteExamAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   deleteExam(str(formData, "vendorSlug"), str(formData, "slug"));
   redirect(route("/admin/exams"));
 }
 
 export async function toggleExamAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   toggleExamPublished(str(formData, "vendorSlug"), str(formData, "slug"));
   redirect(route("/admin/exams"));
 }
 
 export async function saveTestAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   const [vendorSlug, examSlug] = str(formData, "examKey").split("/");
   saveTest({
     originalSlug: str(formData, "originalSlug") || undefined,
@@ -109,25 +111,34 @@ export async function saveTestAction(formData: FormData) {
     passingScore: Number(str(formData, "passingScore") || 70),
     questionCount: Number(str(formData, "questionCount") || 0),
     isPublished: bool(formData, "isPublished"),
+    paperType: str(formData, "paperType") === "FREE" ? "FREE" : "PREMIUM",
+    selectionMethod:
+      str(formData, "selectionMethod") === "FIXED"
+        ? "FIXED"
+        : str(formData, "selectionMethod") === "CATEGORY"
+          ? "CATEGORY"
+          : "RANDOM",
+    categoryFilter: str(formData, "categoryFilter") || undefined,
   });
-  redirect(route("/admin/tests"));
+  redirect(route("/admin/papers"));
 }
 
 export async function deleteTestAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   deleteTest(str(formData, "slug"));
-  redirect(route("/admin/tests"));
+  redirect(route("/admin/papers"));
 }
 
 export async function toggleTestAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   toggleTestPublished(str(formData, "slug"));
-  redirect(route("/admin/tests"));
+  redirect(route("/admin/papers"));
 }
 
 export async function saveQuestionAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   const labels = ["A", "B", "C", "D", "E"];
+  const type = str(formData, "questionType") === "MULTIPLE_CHOICE" ? "MULTIPLE_CHOICE" : "SINGLE_CHOICE";
   const options = labels.map((label) => ({
     label,
     body: str(formData, `option_${label}`),
@@ -139,27 +150,30 @@ export async function saveQuestionAction(formData: FormData) {
     testSlug: str(formData, "testSlug"),
     prompt: str(formData, "prompt"),
     explanation: str(formData, "explanation"),
-    difficulty: str(formData, "difficulty") || "Intermediate",
+    difficulty: str(formData, "difficulty") || "Medium",
     category: str(formData, "category") || "General",
     tags: str(formData, "tags")
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean),
-    type: correctCount > 1 ? "MULTIPLE_CHOICE" : "SINGLE_CHOICE",
+    type: type === "SINGLE_CHOICE" && correctCount > 1 ? "MULTIPLE_CHOICE" : type,
     options,
+    isFree: str(formData, "tier") !== "premium",
+    status: str(formData, "status") === "draft" ? "draft" : "published",
+    imageUrl: str(formData, "imageUrl") || undefined,
   });
   redirect(route("/admin/questions"));
 }
 
 export async function deleteQuestionAction(formData: FormData) {
-  await requireAdmin();
+  await requireStaff();
   deleteQuestion(str(formData, "id"));
   redirect(route("/admin/questions"));
 }
 
 export async function updateRoleAction(formData: FormData) {
   await requireAdmin();
-  const role = str(formData, "role") === "admin" ? "admin" : "learner";
+  const role = normalizeRole(str(formData, "role"));
   try {
     await updateUserRole(str(formData, "id"), role);
   } catch (error) {
@@ -169,4 +183,15 @@ export async function updateRoleAction(formData: FormData) {
     throw error;
   }
   redirect(route("/admin/users"));
+}
+
+export async function savePaperQuestionsAction(formData: FormData) {
+  await requireStaff();
+  const slug = str(formData, "slug");
+  const ids = str(formData, "questionIds")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  setPaperQuestionIds(slug, ids);
+  redirect(route(`/admin/papers/${slug}`));
 }

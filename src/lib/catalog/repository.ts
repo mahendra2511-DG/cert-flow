@@ -5,7 +5,7 @@ import {
   seedSiteFaqs,
   seedTestimonials,
 } from "@/lib/catalog/seed-catalog";
-import { countAllQuestions, getExamAdmin, getLiveQuestions, getPublicExams, getPublicVendors, type LiveExam } from "@/lib/admin/catalog-store";
+import { countAllQuestions, getExamAdmin, getPublicExams, getPublicVendors, listExamQuestions, type LiveExam } from "@/lib/admin/catalog-store";
 import { freeQuestionLimit } from "@/lib/access";
 import type { CatalogCategory, CatalogFaq, CatalogPracticeTest, CatalogTestimonial } from "@/lib/catalog/types";
 
@@ -72,7 +72,9 @@ export type ListExamsInput = {
 function toListing(exam: LiveExam): ExamListing {
   const vendorName = getPublicVendors().find((item) => item.slug === exam.vendorSlug)?.name ?? exam.vendorSlug;
   const tests = exam.tests.filter((test) => test.isPublished);
-  const questionCount = tests.reduce((sum, test) => sum + getLiveQuestions(test.slug).length, 0);
+  const questions = listExamQuestions(exam.vendorSlug, exam.slug).filter((item) => item.status !== "draft");
+  const questionCount = questions.length;
+  const freeMarked = questions.filter((item) => item.isFree).length;
   const pricePaise = tests.length === 0 ? 0 : Math.min(...tests.map((test) => test.pricePaise));
   const ratingCount = tests.reduce((sum, test) => sum + test.ratingCount, 0);
   const ratingAverage =
@@ -81,6 +83,7 @@ function toListing(exam: LiveExam): ExamListing {
       : tests.reduce((sum, test) => sum + test.ratingAverage * test.ratingCount, 0) / ratingCount;
   const primary = [...tests].sort((a, b) => a.pricePaise - b.pricePaise)[0];
   const limit = freeQuestionLimit(exam.freeQuestionLimit);
+  const freeQuestionCount = freeMarked > 0 ? Math.min(limit, freeMarked) : Math.min(limit, questionCount);
 
   return {
     vendorSlug: exam.vendorSlug,
@@ -98,8 +101,8 @@ function toListing(exam: LiveExam): ExamListing {
     isPopular: exam.isPopular,
     categorySlugs: exam.categorySlugs,
     primaryTestSlug: primary?.slug ?? "",
-    freeQuestionCount: Math.min(limit, questionCount),
-    premiumQuestionCount: Math.max(0, questionCount - Math.min(limit, questionCount)),
+    freeQuestionCount,
+    premiumQuestionCount: Math.max(0, questionCount - freeQuestionCount),
     freeQuestionLimit: limit,
   };
 }

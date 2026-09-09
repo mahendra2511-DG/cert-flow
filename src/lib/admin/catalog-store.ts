@@ -14,14 +14,34 @@ import { getBaseQuestionsForTest } from "@/lib/exam/questions";
 const CATALOG_FILE = path.join("/tmp", "prepharbor-admin-catalog.json");
 const QUESTIONS_FILE = path.join("/tmp", "prepharbor-admin-questions.json");
 
+export type PaperType = "FREE" | "PREMIUM";
+export type SelectionMethod = "RANDOM" | "FIXED" | "CATEGORY";
+export type QuestionStatus = "published" | "draft";
+
 export type LiveVendor = SeedVendor & { isPublished: boolean };
-export type LiveTest = SeedPracticeTest & { isPublished: boolean };
-export type LiveExam = Omit<SeedExam, "tests"> & { isPublished: boolean; tests: LiveTest[] };
+export type LiveTest = SeedPracticeTest & {
+  isPublished: boolean;
+  paperType: PaperType;
+  selectionMethod: SelectionMethod;
+  questionIds: string[];
+  categoryFilter?: string;
+};
+export type LiveExam = Omit<SeedExam, "tests"> & {
+  isPublished: boolean;
+  tests: LiveTest[];
+  updatedAt: string;
+  contentVersion: string;
+};
 export type LiveQuestion = ExamQuestion & {
   difficulty: string;
   category: string;
   tags: string[];
   testSlug: string;
+  isFree: boolean;
+  status: QuestionStatus;
+  imageUrl?: string;
+  updatedAt: string;
+  version: string;
 };
 
 type CatalogFile = { vendors: LiveVendor[]; exams: LiveExam[] };
@@ -34,7 +54,12 @@ const memory = globalThis as unknown as {
   __prepharborCatalogReady?: boolean;
 };
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 function cloneSeed(): CatalogFile {
+  const stamped = nowIso();
   return {
     vendors: seedVendors.map((vendor) => ({ ...vendor, isPublished: true })),
     exams: seedExams.map((exam) => ({
@@ -43,10 +68,18 @@ function cloneSeed(): CatalogFile {
       freeQuestionLimit: exam.freeQuestionLimit ?? 20,
       premiumQuestionCount: exam.premiumQuestionCount,
       featured: exam.featured ?? exam.isPopular,
+      updatedAt: stamped,
+      contentVersion: "1.0",
       categorySlugs: [...exam.categorySlugs],
       outcomes: [...exam.outcomes],
       faqs: exam.faqs.map((faq) => ({ ...faq })),
-      tests: exam.tests.map((test) => ({ ...test, isPublished: true })),
+      tests: exam.tests.map((test) => ({
+        ...test,
+        isPublished: true,
+        paperType: test.pricePaise === 0 ? "FREE" : "PREMIUM",
+        selectionMethod: "RANDOM" as const,
+        questionIds: [] as string[],
+      })),
     })),
   };
 }
@@ -116,6 +149,14 @@ function mergeNewSeedItems() {
   for (const exam of liveExams) {
     exam.freeQuestionLimit = exam.freeQuestionLimit ?? 20;
     exam.featured = exam.featured ?? exam.isPopular;
+    exam.updatedAt = exam.updatedAt ?? nowIso();
+    exam.contentVersion = exam.contentVersion ?? "1.0";
+    exam.tests = exam.tests.map((test) => ({
+      ...test,
+      paperType: test.paperType ?? (test.pricePaise === 0 ? "FREE" : "PREMIUM"),
+      selectionMethod: test.selectionMethod ?? "RANDOM",
+      questionIds: test.questionIds ?? [],
+    }));
   }
   persistCatalog();
 }
@@ -231,21 +272,53 @@ export function vendorIsPublic(slug: string) {
   return Boolean(getVendorAdmin(slug)?.isPublished);
 }
 
+function bumpExamUpdated(exam: LiveExam) {
+  exam.updatedAt = nowIso();
+  const parts = String(exam.contentVersion || "1.0").replace(/^v/i, "").split(".");
+  const major = Number(parts[0] || 1);
+  const minor = Number(parts[1] || 0);
+  exam.contentVersion = `${Number.isFinite(major) ? major : 1}.${(Number.isFinite(minor) ? minor : 0) + 1}`;
+}
+
+function touchExamForTest(testSlug: string) {
+  const found = getTestAdmin(testSlug);
+  if (found) {
+    bumpExamUpdated(found.exam);
+  }
+}
+
+function normalizeDifficulty(value?: string) {
+  const raw = (value ?? "").trim().toLowerCase();
+  if (raw === "easy" || raw === "beginner") {
+    return "Easy";
+  }
+  if (raw === "hard" || raw === "expert" || raw === "advanced") {
+    return "Hard";
+  }
+  return "Medium";
+}
+
 function normalizeQuestion(question: ExamQuestion, testSlug: string, index: number): LiveQuestion {
+  const limit = 20;
   return {
     ...question,
     order: question.order || index + 1,
-    difficulty: question.difficulty ?? "Intermediate",
+    difficulty: normalizeDifficulty(question.difficulty ?? "Medium"),
     category: question.category ?? "General",
     tags: question.tags ?? [],
     testSlug,
+    isFree: question.isFree ?? index < limit,
+    status: question.status ?? "published",
+    imageUrl: question.imageUrl,
+    updatedAt: question.updatedAt ?? nowIso(),
+    version: question.version ?? "1.0",
   };
 }
 
 export function getLiveQuestions(testSlug: string): LiveQuestion[] {
   const cached = banks().get(testSlug);
   if (cached) {
-    return cached;
+    return cached.map((question, index) => normalizeQuestion(question, testSlug, index));
   }
   return getBaseQuestionsForTest(testSlug).map((question, index) =>
     normalizeQuestion(question, testSlug, index),
@@ -393,8 +466,12 @@ export function saveExam(input: {
         ratingCount: 0,
         isPopular: false,
         isPublished: input.isPublished,
+        paperType: input.pricePaise === 0 ? "FREE" : "PREMIUM",
+        selectionMethod: "RANDOM",
+        questionIds: [],
       });
     }
+    current.updatedAt = nowIso();
     persistCatalog();
     return current;
   }
@@ -418,6 +495,8 @@ export function saveExam(input: {
     outcomes: ["Cover the published skill areas with original scenarios"],
     faqs: [],
     isPublished: input.isPublished,
+    updatedAt: nowIso(),
+    contentVersion: "1.0",
     freeQuestionLimit: input.freeQuestionLimit ?? 20,
     premiumQuestionCount: input.premiumQuestionCount,
     tests: [
@@ -434,6 +513,9 @@ export function saveExam(input: {
         ratingCount: 0,
         isPopular: false,
         isPublished: input.isPublished,
+        paperType: input.pricePaise === 0 ? "FREE" : "PREMIUM",
+        selectionMethod: "RANDOM",
+        questionIds: [],
       },
     ],
   };
@@ -462,6 +544,7 @@ export function toggleExamPublished(vendorSlug: string, examSlug: string) {
     throw new Error("NOT_FOUND");
   }
   exam.isPublished = !exam.isPublished;
+  exam.updatedAt = nowIso();
   persistCatalog();
   return exam.isPublished;
 }
@@ -479,6 +562,10 @@ export function saveTest(input: {
   passingScore: number;
   questionCount: number;
   isPublished: boolean;
+  paperType?: PaperType;
+  selectionMethod?: SelectionMethod;
+  questionIds?: string[];
+  categoryFilter?: string;
 }) {
   const exam = getExamAdmin(input.vendorSlug, input.examSlug);
   if (!exam) {
@@ -504,6 +591,10 @@ export function saveTest(input: {
     current.passingScore = input.passingScore;
     current.questionCount = input.questionCount;
     current.isPublished = input.isPublished;
+    current.paperType = input.paperType ?? current.paperType ?? (input.pricePaise === 0 ? "FREE" : "PREMIUM");
+    current.selectionMethod = input.selectionMethod ?? current.selectionMethod ?? "RANDOM";
+    current.questionIds = input.questionIds ?? current.questionIds ?? [];
+    current.categoryFilter = input.categoryFilter ?? current.categoryFilter;
     if (previousSlug !== slug) {
       const bank = banks().get(previousSlug);
       if (bank) {
@@ -529,8 +620,13 @@ export function saveTest(input: {
       ratingCount: 0,
       isPopular: false,
       isPublished: input.isPublished,
+      paperType: input.paperType ?? (input.pricePaise === 0 ? "FREE" : "PREMIUM"),
+      selectionMethod: input.selectionMethod ?? "RANDOM",
+      questionIds: input.questionIds ?? [],
+      categoryFilter: input.categoryFilter,
     });
   }
+  bumpExamUpdated(exam);
   persistCatalog();
   return slug;
 }
@@ -550,6 +646,7 @@ export function toggleTestPublished(testSlug: string) {
     throw new Error("NOT_FOUND");
   }
   found.test.isPublished = !found.test.isPublished;
+  bumpExamUpdated(found.exam);
   persistCatalog();
   return found.test.isPublished;
 }
@@ -573,6 +670,7 @@ function persistBank(testSlug: string, questions: LiveQuestion[]) {
   const found = getTestAdmin(testSlug);
   if (found) {
     found.test.questionCount = next.length;
+    touchExamForTest(testSlug);
     persistCatalog();
   }
   persistQuestions();
@@ -588,13 +686,20 @@ export function saveQuestion(input: {
   category: string;
   tags: string[];
   type: "SINGLE_CHOICE" | "MULTIPLE_CHOICE";
-  options: Array<{ label: string; body: string; isCorrect: boolean }>;
+  options: Array<{ id?: string; label: string; body: string; isCorrect: boolean }>;
+  isFree?: boolean;
+  status?: QuestionStatus;
+  imageUrl?: string;
 }) {
   const current = getLiveQuestions(input.testSlug);
+  const existing = input.id ? current.find((item) => item.id === input.id) : undefined;
   const options = input.options
     .filter((option) => option.body.trim())
     .map((option, index) => ({
-      id: `${input.testSlug}-opt-${randomBytes(3).toString("hex")}`,
+      id:
+        option.id ||
+        existing?.options.find((item) => item.label === option.label)?.id ||
+        `${input.testSlug}-opt-${randomBytes(3).toString("hex")}`,
       label: option.label || ["A", "B", "C", "D", "E"][index] || String(index + 1),
       body: option.body.trim(),
       isCorrect: option.isCorrect,
@@ -607,15 +712,20 @@ export function saveQuestion(input: {
   }
   const record: LiveQuestion = {
     id: input.id ?? `${input.testSlug}-q${randomBytes(4).toString("hex")}`,
-    order: current.length + 1,
+    order: existing?.order ?? current.length + 1,
     type: input.type,
     prompt: input.prompt.trim(),
     explanation: input.explanation.trim(),
     options,
-    difficulty: input.difficulty.trim() || "Intermediate",
+    difficulty: normalizeDifficulty(input.difficulty),
     category: input.category.trim() || "General",
     tags: input.tags.map((tag) => tag.trim()).filter(Boolean),
     testSlug: input.testSlug,
+    isFree: input.isFree ?? existing?.isFree ?? false,
+    status: input.status ?? existing?.status ?? "published",
+    imageUrl: input.imageUrl?.trim() || existing?.imageUrl,
+    updatedAt: nowIso(),
+    version: existing ? bumpMinorVersion(existing.version) : "1.0",
   };
   const index = current.findIndex((item) => item.id === record.id);
   const next = [...current];
@@ -626,6 +736,12 @@ export function saveQuestion(input: {
   }
   persistBank(input.testSlug, next);
   return record;
+}
+
+function bumpMinorVersion(version?: string) {
+  const cleaned = String(version || "1.0").replace(/^v/i, "");
+  const [major, minor] = cleaned.split(".");
+  return `${Number(major) || 1}.${(Number(minor) || 0) + 1}`;
 }
 
 export function deleteQuestion(id: string) {
@@ -641,5 +757,268 @@ export function deleteQuestion(id: string) {
 
 export function importQuestions(testSlug: string, questions: LiveQuestion[]) {
   const current = getLiveQuestions(testSlug);
-  persistBank(testSlug, [...current, ...questions]);
+  persistBank(
+    testSlug,
+    [
+      ...current,
+      ...questions.map((question, index) =>
+        normalizeQuestion(question, testSlug, current.length + index),
+      ),
+    ],
+  );
 }
+
+export function listExamQuestions(vendorSlug: string, examSlug: string) {
+  const exam = getExamAdmin(vendorSlug, examSlug);
+  if (!exam) {
+    return [];
+  }
+  const seen = new Set<string>();
+  const items: LiveQuestion[] = [];
+  for (const test of exam.tests) {
+    for (const question of getLiveQuestions(test.slug)) {
+      if (seen.has(question.id)) {
+        continue;
+      }
+      seen.add(question.id);
+      items.push(question);
+    }
+  }
+  return items.sort((a, b) => a.order - b.order);
+}
+
+export type QuestionQuery = {
+  vendor?: string;
+  exam?: string;
+  testSlug?: string;
+  tier?: "free" | "premium";
+  difficulty?: string;
+  category?: string;
+  status?: QuestionStatus;
+  q?: string;
+  sort?: "newest" | "oldest" | "number";
+  page?: number;
+  pageSize?: number;
+};
+
+export function queryQuestionsAdmin(query: QuestionQuery) {
+  let items = query.testSlug
+    ? getLiveQuestions(query.testSlug)
+    : query.exam
+      ? exams()
+          .filter((exam) => exam.slug === query.exam && (!query.vendor || exam.vendorSlug === query.vendor))
+          .flatMap((exam) => listExamQuestions(exam.vendorSlug, exam.slug))
+      : listQuestionsAdmin();
+
+  if (query.vendor && !query.exam && !query.testSlug) {
+    const examSlugs = exams()
+      .filter((exam) => exam.vendorSlug === query.vendor)
+      .flatMap((exam) => exam.tests.map((test) => test.slug));
+    items = items.filter((item) => examSlugs.includes(item.testSlug));
+  }
+  if (query.tier === "free") {
+    items = items.filter((item) => item.isFree);
+  }
+  if (query.tier === "premium") {
+    items = items.filter((item) => !item.isFree);
+  }
+  if (query.difficulty) {
+    items = items.filter((item) => item.difficulty.toLowerCase() === query.difficulty!.toLowerCase());
+  }
+  if (query.category) {
+    items = items.filter((item) => item.category.toLowerCase() === query.category!.toLowerCase());
+  }
+  if (query.status) {
+    items = items.filter((item) => item.status === query.status);
+  }
+  if (query.q?.trim()) {
+    const needle = query.q.trim().toLowerCase();
+    items = items.filter(
+      (item) =>
+        item.prompt.toLowerCase().includes(needle) ||
+        item.category.toLowerCase().includes(needle) ||
+        item.tags.some((tag) => tag.toLowerCase().includes(needle)),
+    );
+  }
+
+  const sort = query.sort ?? "number";
+  items = items.slice().sort((a, b) => {
+    if (sort === "newest") {
+      return b.updatedAt.localeCompare(a.updatedAt);
+    }
+    if (sort === "oldest") {
+      return a.updatedAt.localeCompare(b.updatedAt);
+    }
+    return a.order - b.order;
+  });
+
+  const pageSize = Math.max(1, Math.min(query.pageSize ?? 25, 100));
+  const page = Math.max(1, query.page ?? 1);
+  const start = (page - 1) * pageSize;
+  return {
+    total: items.length,
+    page,
+    pageSize,
+    items: items.slice(start, start + pageSize),
+    allIds: items.map((item) => item.id),
+  };
+}
+
+export function reorderQuestions(testSlug: string, orderedIds: string[]) {
+  const current = getLiveQuestions(testSlug);
+  const byId = new Map(current.map((item) => [item.id, item]));
+  const next = [
+    ...orderedIds.map((id) => byId.get(id)).filter((item): item is LiveQuestion => Boolean(item)),
+    ...current.filter((item) => !orderedIds.includes(item.id)),
+  ];
+  persistBank(testSlug, next);
+}
+
+export function bulkUpdateQuestions(
+  ids: string[],
+  action:
+    | "publish"
+    | "unpublish"
+    | "delete"
+    | "mark_free"
+    | "mark_premium"
+    | "category"
+    | "difficulty",
+  value?: string,
+) {
+  const grouped = new Map<string, LiveQuestion[]>();
+  for (const id of ids) {
+    const question = getQuestionAdmin(id);
+    if (!question) {
+      continue;
+    }
+    const list = grouped.get(question.testSlug) ?? [];
+    list.push(question);
+    grouped.set(question.testSlug, list);
+  }
+
+  for (const [testSlug, subset] of grouped) {
+    const idSet = new Set(subset.map((item) => item.id));
+    if (action === "delete") {
+      persistBank(
+        testSlug,
+        getLiveQuestions(testSlug).filter((item) => !idSet.has(item.id)),
+      );
+      continue;
+    }
+    persistBank(
+      testSlug,
+      getLiveQuestions(testSlug).map((item) => {
+        if (!idSet.has(item.id)) {
+          return item;
+        }
+        if (action === "publish") {
+          return { ...item, status: "published", updatedAt: nowIso() };
+        }
+        if (action === "unpublish") {
+          return { ...item, status: "draft", updatedAt: nowIso() };
+        }
+        if (action === "mark_free") {
+          return { ...item, isFree: true, updatedAt: nowIso() };
+        }
+        if (action === "mark_premium") {
+          return { ...item, isFree: false, updatedAt: nowIso() };
+        }
+        if (action === "category" && value) {
+          return { ...item, category: value, updatedAt: nowIso() };
+        }
+        if (action === "difficulty" && value) {
+          return { ...item, difficulty: normalizeDifficulty(value), updatedAt: nowIso() };
+        }
+        return item;
+      }),
+    );
+  }
+}
+
+export function setPaperQuestionIds(testSlug: string, questionIds: string[]) {
+  const found = getTestAdmin(testSlug);
+  if (!found) {
+    throw new Error("NOT_FOUND");
+  }
+  found.test.questionIds = questionIds;
+  found.test.selectionMethod = "FIXED";
+  found.test.questionCount = questionIds.length;
+  bumpExamUpdated(found.exam);
+  persistCatalog();
+}
+
+export function examContentOverview(vendorSlug: string, examSlug: string) {
+  const exam = getExamAdmin(vendorSlug, examSlug);
+  if (!exam) {
+    return null;
+  }
+  const questions = listExamQuestions(vendorSlug, examSlug);
+  const papers = exam.tests;
+  return {
+    exam,
+    vendor: getVendorAdmin(exam.vendorSlug),
+    totalQuestions: questions.length,
+    freeQuestions: questions.filter((item) => item.isFree).length,
+    premiumQuestions: questions.filter((item) => !item.isFree).length,
+    publishedQuestions: questions.filter((item) => item.status === "published").length,
+    draftQuestions: questions.filter((item) => item.status === "draft").length,
+    freePapers: papers.filter((item) => item.paperType === "FREE").length,
+    premiumPapers: papers.filter((item) => item.paperType === "PREMIUM").length,
+    papers,
+    lastUpdated: exam.updatedAt,
+    contentVersion: exam.contentVersion,
+    published: exam.isPublished,
+  };
+}
+
+export function questionsToCsv(questions: LiveQuestion[]) {
+  const header = [
+    "question",
+    "option_a",
+    "option_b",
+    "option_c",
+    "option_d",
+    "option_e",
+    "correct_answer",
+    "explanation",
+    "difficulty",
+    "category",
+    "question_type",
+    "is_free",
+    "status",
+    "tags",
+  ];
+  const rows = questions.map((question) => {
+    const bodies = ["A", "B", "C", "D", "E"].map(
+      (label) => question.options.find((option) => option.label === label)?.body ?? "",
+    );
+    const correct = question.options
+      .filter((option) => option.isCorrect)
+      .map((option) => option.label)
+      .join(";");
+    const cells = [
+      question.prompt,
+      ...bodies,
+      correct,
+      question.explanation,
+      question.difficulty,
+      question.category,
+      question.type === "MULTIPLE_CHOICE" ? "multiple" : "single",
+      question.isFree ? "true" : "false",
+      question.status,
+      question.tags.join(";"),
+    ];
+    return cells.map(csvEscape).join(",");
+  });
+  return [header.join(","), ...rows].join("\n");
+}
+
+function csvEscape(value: string) {
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+export { normalizeDifficulty };

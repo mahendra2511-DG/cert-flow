@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui-patterns/empty-state";
@@ -10,6 +11,7 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  await requireAdmin();
   const { error } = await searchParams;
   const users = await listUsers();
 
@@ -45,8 +47,9 @@ export default async function AdminUsersPage({
                   defaultValue={user.role}
                   className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 >
-                  <option value="learner">learner</option>
-                  <option value="admin">admin</option>
+                  <option value="learner">USER</option>
+                  <option value="editor">EDITOR</option>
+                  <option value="admin">ADMIN</option>
                 </select>
                 <Button type="submit" size="sm" variant="secondary">
                   Update role

@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { LiveQuestion } from "@/lib/admin/catalog-store";
-import { getLiveQuestions } from "@/lib/admin/catalog-store";
+import { getLiveQuestions, normalizeDifficulty } from "@/lib/admin/catalog-store";
 
 export type ImportRow = Record<string, string>;
 
@@ -17,6 +17,11 @@ export type ValidatedImport = {
 };
 
 const LABELS = ["A", "B", "C", "D", "E"] as const;
+
+export const CSV_TEMPLATE = `question,option_a,option_b,option_c,option_d,option_e,correct_answer,explanation,difficulty,category,question_type,is_free
+Which service stores objects with eleven nines of durability?,Amazon S3,Amazon EBS,Amazon EFS,Amazon RDS,,A,S3 is the object store designed for eleven nines of durability.,Medium,Storage,single,true
+A workload needs two correct controls. Select both.,Enable MFA,Share root keys,Use least-privilege IAM,Disable CloudTrail,,A;C,MFA and least privilege reduce account takeover risk.,Hard,IAM,multiple,false
+`;
 
 function normalizeKey(key: string) {
   return key.trim().toLowerCase().replace(/\s+/g, "_");
@@ -86,6 +91,42 @@ export function parseCsv(text: string): ImportRow[] {
     });
 }
 
+function truthy(value?: string) {
+  const raw = (value ?? "").trim().toLowerCase();
+  return raw === "true" || raw === "1" || raw === "yes" || raw === "free";
+}
+
+function jsonRowToImport(row: Record<string, unknown>): ImportRow {
+  const record: ImportRow = {};
+  for (const [key, value] of Object.entries(row)) {
+    const normalized = normalizeKey(key);
+    if (normalized === "options" && Array.isArray(value)) {
+      value.forEach((body, index) => {
+        const label = LABELS[index];
+        if (label) {
+          record[`option_${label.toLowerCase()}`] = String(body ?? "").trim();
+        }
+      });
+      continue;
+    }
+    if (Array.isArray(value)) {
+      record[normalized] = value.map((item) => String(item ?? "").trim()).join(",");
+      continue;
+    }
+    record[normalized] = String(value ?? "").trim();
+  }
+  if (record.correctanswer && !record.correct_answer) {
+    record.correct_answer = record.correctanswer;
+  }
+  if (record.isfree && !record.is_free) {
+    record.is_free = record.isfree;
+  }
+  if (record.questiontype && !record.question_type) {
+    record.question_type = record.questiontype;
+  }
+  return record;
+}
+
 export function parseImportPayload(text: string, filename: string): ImportRow[] {
   const trimmed = text.trim();
   if (!trimmed) {
@@ -93,21 +134,17 @@ export function parseImportPayload(text: string, filename: string): ImportRow[] 
   }
   if (filename.toLowerCase().endsWith(".json") || trimmed.startsWith("[") || trimmed.startsWith("{")) {
     const parsed = JSON.parse(trimmed) as unknown;
-    const rows = Array.isArray(parsed) ? parsed : parsed && typeof parsed === "object" && "questions" in parsed
-      ? (parsed as { questions: unknown }).questions
-      : null;
+    const rows = Array.isArray(parsed)
+      ? parsed
+      : parsed && typeof parsed === "object" && "questions" in parsed
+        ? (parsed as { questions: unknown }).questions
+        : null;
     if (!Array.isArray(rows)) {
       throw new Error("JSON must be an array of question objects.");
     }
-    return rows.map((row) => {
-      const record: ImportRow = {};
-      if (row && typeof row === "object") {
-        for (const [key, value] of Object.entries(row as Record<string, unknown>)) {
-          record[normalizeKey(key)] = String(value ?? "").trim();
-        }
-      }
-      return record;
-    });
+    return rows.map((row) =>
+      row && typeof row === "object" ? jsonRowToImport(row as Record<string, unknown>) : {},
+    );
   }
   return parseCsv(trimmed);
 }
@@ -148,9 +185,6 @@ export function validateImportRows(rows: ImportRow[], testSlug: string): Validat
     const rowNumber = index + 2;
     const prompt = row.question?.trim() ?? "";
     const explanation = row.explanation?.trim() ?? "";
-    const optionBodies = [row.option_a, row.option_b, row.option_c, row.option_d, row.option_e]
-      .map((value) => (value ?? "").trim())
-      .filter((value, optionIndex, array) => value || optionIndex < 2 || array.slice(0, optionIndex).every(Boolean));
     const filledOptions = [row.option_a, row.option_b, row.option_c, row.option_d, row.option_e].map(
       (value) => (value ?? "").trim(),
     );
@@ -193,10 +227,16 @@ export function validateImportRows(rows: ImportRow[], testSlug: string): Validat
     }
     seenInFile.add(print);
 
+    const typeToken = (row.question_type ?? "").trim().toLowerCase();
+    const type =
+      typeToken === "multiple" || typeToken === "multiple_choice" || correct.size > 1
+        ? "MULTIPLE_CHOICE"
+        : "SINGLE_CHOICE";
+
     const live: LiveQuestion = {
       id: `${testSlug}-imp-${randomBytes(4).toString("hex")}`,
       order: 0,
-      type: correct.size > 1 ? "MULTIPLE_CHOICE" : "SINGLE_CHOICE",
+      type,
       prompt,
       explanation,
       options: options.map((option, optionIndex) => ({
@@ -205,16 +245,19 @@ export function validateImportRows(rows: ImportRow[], testSlug: string): Validat
         body: option.body,
         isCorrect: correct.has(optionIndex),
       })),
-      difficulty: (row.difficulty || "Intermediate").trim(),
+      difficulty: normalizeDifficulty(row.difficulty || "Medium"),
       category: (row.category || "General").trim(),
       tags: (row.tags ?? "")
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
       testSlug,
+      isFree: truthy(row.is_free),
+      status: (row.status || "published").toLowerCase() === "draft" ? "draft" : "published",
+      updatedAt: new Date().toISOString(),
+      version: "1.0",
     };
     valid.push({ row: rowNumber, question: live, fingerprint: print });
-    void optionBodies;
   });
 
   return { valid, invalid, duplicates };

@@ -6,7 +6,7 @@ export type StoredUser = {
   createdAt: string;
   notifyProductUpdates: boolean;
   notifyAttemptSummaries: boolean;
-  role: "admin" | "learner";
+  role: "admin" | "editor" | "learner";
 };
 
 export type PasswordResetToken = {

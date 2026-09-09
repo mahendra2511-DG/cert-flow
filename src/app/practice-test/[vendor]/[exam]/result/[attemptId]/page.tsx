@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PremiumPdfCta } from "@/components/commerce/premium-pdf-cta";
 import { findExamContext, getResult } from "@/lib/exam/engine";
 import { readActor } from "@/lib/auth/actor";
+import { formatInrFromPaise } from "@/lib/utils";
 import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
@@ -52,8 +53,8 @@ export default async function PracticeResultPage({
       <h1 className="mt-2 text-3xl font-semibold">Results</h1>
       {free ? (
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          You have completed your 20 free questions. Want more questions? Unlock the full practice
-          test and premium PDF.
+          You&apos;ve completed your free questions. Unlock {Math.max(0, (context.exam.premiumQuestionCount ?? context.test.questionCount) - (context.exam.freeQuestionLimit ?? 20))}+
+          premium questions and the premium PDF.
         </p>
       ) : null}
       <div className="mt-8">
@@ -65,7 +66,7 @@ export default async function PracticeResultPage({
         </Button>
         {free ? (
           <Button nativeButton={false} variant="outline" render={<Link href={`/checkout/${context.test.slug}` as Route} />}>
-            Unlock premium
+            Unlock Premium — {formatInrFromPaise(context.test.pricePaise)}
           </Button>
         ) : null}
       </div>

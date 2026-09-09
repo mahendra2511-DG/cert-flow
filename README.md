@@ -80,7 +80,9 @@ If `DATABASE_URL` is unset, the seed script exits after noting that the in-repo 
 
 Demo learner: `demo@prepharbor.test` / `demo` (purchases and attempts; cannot open `/admin`).
 
-Demo admin: `admin@prepharbor.test` / `adminadmin`. Learners who hit `/admin` are sent to `/forbidden`. `/api/admin/*` returns 403.
+Demo admin: `admin@prepharbor.test` / `adminadmin`. Demo editor can be assigned from **Users** (ADMIN only). Learners who hit `/admin` are sent to `/forbidden`. Staff APIs are `/api/admin/*`; payment and user APIs stay admin-only.
+
+Content is managed from `/admin/content` (wizard, packages, questions, papers, PDFs). Do not hard-code exams or questions in React — the admin overlay under `/tmp` (or a database in production) is the source of truth. CSV/JSON import requires a preview and **Confirm Import**. Premium PDFs are never public URLs.
 
 Password reset does not send email here. Request a link from `/forgot-password` and use the demo inbox URL on the success screen.
 

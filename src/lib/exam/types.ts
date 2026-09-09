@@ -17,6 +17,11 @@ export type ExamQuestion = {
   difficulty?: string;
   category?: string;
   tags?: string[];
+  isFree?: boolean;
+  status?: "published" | "draft";
+  imageUrl?: string;
+  updatedAt?: string;
+  version?: string;
 };
 
 export type PublicOption = Omit<ExamOption, "isCorrect">;

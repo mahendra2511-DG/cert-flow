@@ -141,9 +141,9 @@ export function ImportForm({ tests }: { tests: TestOption[] }) {
         <CardHeader>
           <CardTitle>Upload</CardTitle>
           <CardDescription>
-            Required CSV columns: question, option_a, option_b, option_c, option_d, option_e,
-            correct_answer, explanation, difficulty, category. JSON may be an array of the same keys.
-            correct_answer accepts A–E, option_a, or 1-based indexes; use commas for multiple answers.
+            CSV columns: question, option_a–e, correct_answer, explanation, difficulty, category,
+            question_type, is_free. JSON may use options[], correctAnswer, and isFree. Preview must
+            be confirmed before rows are inserted.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -181,12 +181,12 @@ export function ImportForm({ tests }: { tests: TestOption[] }) {
             <Button type="button" variant="outline" onClick={loadSample}>
               Validate sample CSV
             </Button>
-            <a href="/samples/questions-import.csv" className="text-sm font-medium underline-offset-4 hover:underline" download>
-              Download sample CSV
+            <a href="/api/admin/questions/template" className="text-sm font-medium underline-offset-4 hover:underline">
+              Download CSV template
             </a>
             <Button type="button" disabled={!preview || preview.validCount === 0 || stage === "importing"} onClick={() => void importValid()}>
-              Import {preview?.validCount ?? 0} valid questions
-            </Button>
+            Confirm Import ({preview?.validCount ?? 0} valid)
+          </Button> is Confirm Import in the user request. Change button.
           </div>
           {fileName ? <p className="text-xs text-muted-foreground">File: {fileName}</p> : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -216,10 +216,11 @@ export function ImportForm({ tests }: { tests: TestOption[] }) {
       </div>
 
       {preview ? (
-        <section className="grid gap-3 sm:grid-cols-3">
-          <Stat label="Valid questions" value={preview.validCount} />
-          <Stat label="Invalid questions" value={preview.invalidCount} />
-          <Stat label="Duplicates skipped" value={preview.duplicateCount} />
+        <section className="grid gap-3 sm:grid-cols-4">
+          <Stat label="Rows found" value={preview.rowCount} />
+          <Stat label="Valid" value={preview.validCount} />
+          <Stat label="Invalid" value={preview.invalidCount} />
+          <Stat label="Duplicates" value={preview.duplicateCount} />
         </section>
       ) : null}
 
