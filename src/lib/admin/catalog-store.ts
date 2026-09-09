@@ -98,20 +98,22 @@ export function ensureCatalog() {
 
 function mergeNewSeedItems() {
   const seeded = cloneSeed();
-  const vendorSlugs = new Set(vendors().map((item) => item.slug));
+  const liveVendors = memory.__prepharborLiveVendors!;
+  const liveExams = memory.__prepharborLiveExams!;
+  const vendorSlugs = new Set(liveVendors.map((item) => item.slug));
   for (const vendor of seeded.vendors) {
     if (!vendorSlugs.has(vendor.slug)) {
-      vendors().push(vendor);
+      liveVendors.push(vendor);
       vendorSlugs.add(vendor.slug);
     }
   }
-  const examKeys = new Set(exams().map((item) => `${item.vendorSlug}/${item.slug}`));
+  const examKeys = new Set(liveExams.map((item) => `${item.vendorSlug}/${item.slug}`));
   for (const exam of seeded.exams) {
     if (!examKeys.has(`${exam.vendorSlug}/${exam.slug}`)) {
-      exams().push(exam);
+      liveExams.push(exam);
     }
   }
-  for (const exam of exams()) {
+  for (const exam of liveExams) {
     exam.freeQuestionLimit = exam.freeQuestionLimit ?? 20;
     exam.featured = exam.featured ?? exam.isPopular;
   }
