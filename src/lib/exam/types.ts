@@ -43,6 +43,7 @@ export type AttemptRecord = {
   examSlug: string;
   examCode: string;
   examName: string;
+  mode: "FREE" | "PREMIUM";
   timeLimitMin: number;
   passingScore: number;
   status: "IN_PROGRESS" | "SUBMITTED";

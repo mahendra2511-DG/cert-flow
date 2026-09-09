@@ -29,12 +29,12 @@ export default async function StartPracticeTestPage({
   }
   const session = await auth();
   if (!session?.user?.id) {
-    redirect(route(`/sign-in?callbackUrl=/practice-test/${vendor}/${exam}/start`));
+    redirect(route(`/practice-test/${vendor}/${exam}/free`));
   }
 
   const owned = await userOwnsExam(session.user.id, vendor, exam);
   if (!owned) {
-    redirect(route(`/checkout/${context.test.slug}`));
+    redirect(route(`/practice-test/${vendor}/${exam}/free`));
   }
 
   const query = await searchParams;

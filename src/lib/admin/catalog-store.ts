@@ -40,6 +40,9 @@ function cloneSeed(): CatalogFile {
     exams: seedExams.map((exam) => ({
       ...exam,
       isPublished: true,
+      freeQuestionLimit: exam.freeQuestionLimit ?? 20,
+      premiumQuestionCount: exam.premiumQuestionCount,
+      featured: exam.featured ?? exam.isPopular,
       categorySlugs: [...exam.categorySlugs],
       outcomes: [...exam.outcomes],
       faqs: exam.faqs.map((faq) => ({ ...faq })),
@@ -89,7 +92,30 @@ export function ensureCatalog() {
   } catch {
     // start empty; banks fill on first admin edit or list
   }
+  mergeNewSeedItems();
   memory.__prepharborCatalogReady = true;
+}
+
+function mergeNewSeedItems() {
+  const seeded = cloneSeed();
+  const vendorSlugs = new Set(vendors().map((item) => item.slug));
+  for (const vendor of seeded.vendors) {
+    if (!vendorSlugs.has(vendor.slug)) {
+      vendors().push(vendor);
+      vendorSlugs.add(vendor.slug);
+    }
+  }
+  const examKeys = new Set(exams().map((item) => `${item.vendorSlug}/${item.slug}`));
+  for (const exam of seeded.exams) {
+    if (!examKeys.has(`${exam.vendorSlug}/${exam.slug}`)) {
+      exams().push(exam);
+    }
+  }
+  for (const exam of exams()) {
+    exam.freeQuestionLimit = exam.freeQuestionLimit ?? 20;
+    exam.featured = exam.featured ?? exam.isPopular;
+  }
+  persistCatalog();
 }
 
 function vendors() {
@@ -308,6 +334,8 @@ export function saveExam(input: {
   seoDescription: string;
   isPublished: boolean;
   level?: string;
+  freeQuestionLimit?: number;
+  premiumQuestionCount?: number;
 }) {
   if (!getVendorAdmin(input.vendorSlug)) {
     throw new Error("VENDOR_NOT_FOUND");
@@ -342,6 +370,8 @@ export function saveExam(input: {
     current.seoDescription = input.seoDescription.trim() || current.summary;
     current.isPublished = input.isPublished;
     current.level = input.level?.trim() || current.level;
+    current.freeQuestionLimit = input.freeQuestionLimit ?? current.freeQuestionLimit ?? 20;
+    current.premiumQuestionCount = input.premiumQuestionCount ?? current.premiumQuestionCount;
     const test = current.tests[0];
     if (test) {
       test.pricePaise = input.pricePaise;
@@ -386,6 +416,8 @@ export function saveExam(input: {
     outcomes: ["Cover the published skill areas with original scenarios"],
     faqs: [],
     isPublished: input.isPublished,
+    freeQuestionLimit: input.freeQuestionLimit ?? 20,
+    premiumQuestionCount: input.premiumQuestionCount,
     tests: [
       {
         slug: `${slug}-practice`,

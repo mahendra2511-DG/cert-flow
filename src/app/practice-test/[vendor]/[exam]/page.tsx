@@ -71,7 +71,6 @@ export default async function PracticeTestDetailPage({
   }
 
   const questionCount = getQuestionsForTest(context.test.slug).length;
-  const startHref = `/practice-test/${vendor}/${exam}/start` as Route;
   const checkoutHref = `/checkout/${context.test.slug}` as Route;
   const examHref = `/certifications/${vendor}/${exam}` as Route;
   const sittingCopy = practiceSittingCopy({
@@ -187,19 +186,21 @@ export default async function PracticeTestDetailPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-3xl font-semibold">{formatInrFromPaise(context.test.pricePaise)}</p>
+              <Button
+                nativeButton={false}
+                render={<Link href={`/practice-test/${vendor}/${exam}/free` as Route} />}
+                className="w-full"
+              >
+                Start 20 free questions
+              </Button>
               {owned ? (
-                <Button nativeButton={false} render={<Link href={startHref} />} className="w-full">
-                  Start practice test
+                <Button nativeButton={false} render={<Link href={`/practice-test/${vendor}/${exam}/premium` as Route} />} variant="outline" className="w-full">
+                  Start premium test
                 </Button>
               ) : (
-                <>
-                  <Button nativeButton={false} render={<Link href={checkoutHref} />} className="w-full">
-                    Continue to checkout
-                  </Button>
-                  <Button nativeButton={false} render={<Link href={startHref} />} variant="outline" className="w-full">
-                    I already paid
-                  </Button>
-                </>
+                <Button nativeButton={false} render={<Link href={checkoutHref} />} variant="outline" className="w-full">
+                  Unlock premium
+                </Button>
               )}
               <p className="text-xs text-muted-foreground">
                 Pass mark {context.test.passingScore}%. Timer auto-submits at zero.

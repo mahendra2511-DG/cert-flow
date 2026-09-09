@@ -6,6 +6,7 @@ import {
   seedTestimonials,
 } from "@/lib/catalog/seed-catalog";
 import { countAllQuestions, getExamAdmin, getLiveQuestions, getPublicExams, getPublicVendors, type LiveExam } from "@/lib/admin/catalog-store";
+import { freeQuestionLimit } from "@/lib/access";
 import type { CatalogCategory, CatalogFaq, CatalogPracticeTest, CatalogTestimonial } from "@/lib/catalog/types";
 
 export const CATALOG_PAGE_SIZE = 6;
@@ -28,6 +29,9 @@ export type ExamListing = {
   isPopular: boolean;
   categorySlugs: string[];
   primaryTestSlug: string;
+  freeQuestionCount: number;
+  premiumQuestionCount: number;
+  freeQuestionLimit: number;
 };
 
 export type ExamDetail = ExamListing & {
@@ -76,6 +80,7 @@ function toListing(exam: LiveExam): ExamListing {
       ? 0
       : tests.reduce((sum, test) => sum + test.ratingAverage * test.ratingCount, 0) / ratingCount;
   const primary = [...tests].sort((a, b) => a.pricePaise - b.pricePaise)[0];
+  const limit = freeQuestionLimit(exam.freeQuestionLimit);
 
   return {
     vendorSlug: exam.vendorSlug,
@@ -93,6 +98,9 @@ function toListing(exam: LiveExam): ExamListing {
     isPopular: exam.isPopular,
     categorySlugs: exam.categorySlugs,
     primaryTestSlug: primary?.slug ?? "",
+    freeQuestionCount: Math.min(limit, questionCount),
+    premiumQuestionCount: Math.max(0, questionCount - Math.min(limit, questionCount)),
+    freeQuestionLimit: limit,
   };
 }
 
@@ -303,6 +311,15 @@ export async function getHomepageContent() {
         .map((test) => ({ ...test, certificationSlug: exam.examSlug }));
     }),
     popularExams: popularResult.items,
+    featuredProviders: (await listVendors()).filter(
+      (vendor) => vendor.featured !== false && (vendor.examCount > 0 || vendor.featured),
+    ),
+    selectorExams: getPublicExams().map((exam) => ({
+      vendorSlug: exam.vendorSlug,
+      slug: exam.slug,
+      code: exam.code,
+      name: exam.name,
+    })),
     testimonials: seedTestimonials,
     faqs: seedSiteFaqs,
     stats: {

@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
+import { ensureActor } from "@/lib/auth/actor";
 import { startAttempt, saveSelection, submitAttempt, toggleFlag, findExamContext } from "@/lib/exam/engine";
 import { getAttempt } from "@/lib/exam/store";
 import { userOwnsExam } from "@/lib/commerce/checkout";
@@ -8,21 +9,33 @@ import { redirect } from "next/navigation";
 import { route } from "@/lib/routes";
 
 async function requireAttemptOwner(attemptId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("UNAUTHORIZED");
-  }
+  const actor = await ensureActor();
   const attempt = await getAttempt(attemptId);
-  if (!attempt || attempt.userId !== session.user.id) {
+  if (!attempt || attempt.userId !== actor.id) {
     throw new Error("FORBIDDEN");
   }
-  return { userId: session.user.id, attempt };
+  return { userId: actor.id, attempt };
+}
+
+export async function startFreePracticeAction(vendor: string, exam: string) {
+  const context = findExamContext(vendor, exam);
+  if (!context) {
+    redirect(route("/certifications"));
+  }
+  const actor = await ensureActor();
+  const attempt = await startAttempt({
+    vendorSlug: vendor,
+    examSlug: exam,
+    userId: actor.id,
+    mode: "FREE",
+  });
+  redirect(`/practice-test/${vendor}/${exam}/question/1?attempt=${attempt.id}`);
 }
 
 export async function startPracticeTestAction(vendor: string, exam: string) {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect(route(`/sign-in?callbackUrl=/practice-test/${vendor}/${exam}/start`));
+    redirect(route(`/sign-in?callbackUrl=/practice-test/${vendor}/${exam}/premium`));
   }
   const context = findExamContext(vendor, exam);
   if (!context) {
@@ -35,6 +48,7 @@ export async function startPracticeTestAction(vendor: string, exam: string) {
     vendorSlug: vendor,
     examSlug: exam,
     userId: session.user.id,
+    mode: "PREMIUM",
   });
   redirect(`/practice-test/${vendor}/${exam}/question/1?attempt=${attempt.id}`);
 }

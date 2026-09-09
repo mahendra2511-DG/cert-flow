@@ -87,6 +87,7 @@ model Provider {
   name            String
   description     String   @db.Text
   longDescription String   @db.Text
+  featured        Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -129,6 +130,8 @@ model Certification {
   language        String   @default("English")
   examFormat      String
   isPopular       Boolean  @default(false)
+  featured        Boolean  @default(false)
+  freeQuestionLimit Int    @default(20)
   seoTitle        String?
   seoDescription  String?  @db.Text
   providerId      String
@@ -143,6 +146,7 @@ model Certification {
 
   @@unique([providerId, slug])
   @@index([providerId])
+  @@index([slug])
   @@index([code])
   @@index([isPopular])
 }
@@ -276,6 +280,8 @@ model Purchase {
 
   @@unique([userId, practiceTestSlug])
   @@index([userId, status])
+  @@index([userId])
+  @@index([vendorSlug, examSlug])
 }
 
 model Attempt {
@@ -285,6 +291,7 @@ model Attempt {
   vendorSlug     String
   examSlug       String
   status         AttemptStatus @default(IN_PROGRESS)
+  mode           String        @default("PREMIUM")
   scorePercent   Int?
   correctCount   Int?
   incorrectCount Int?
@@ -303,6 +310,51 @@ model Attempt {
 
   @@index([userId, practiceTestId])
   @@index([vendorSlug, examSlug, status])
+}
+
+model PremiumPdf {
+  id            String   @id @default(cuid())
+  vendorSlug    String
+  examSlug      String
+  title         String
+  description   String   @db.Text
+  version       String
+  status        String   @default("published")
+  questionCount Int
+  storageKey    String
+  filename      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([vendorSlug, examSlug])
+  @@index([examSlug])
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  examSlug   String
+  vendorSlug String
+  kind       String
+  name       String
+  pricePaise Int
+  currency   String   @default("INR")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([vendorSlug, examSlug])
+}
+
+model UserProgress {
+  id             String   @id @default(cuid())
+  userId         String
+  vendorSlug     String
+  examSlug       String
+  lastScore      Int?
+  attemptsCount  Int      @default(0)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, vendorSlug, examSlug])
+  @@index([userId])
 }
 
 model AttemptAnswer {

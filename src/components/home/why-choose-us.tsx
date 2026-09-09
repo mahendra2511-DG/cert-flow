@@ -1,32 +1,24 @@
-import { BookOpenCheck, Gauge, ListChecks, RefreshCw, Sparkles } from "lucide-react";
+import {
+  BookOpenCheck,
+  FileText,
+  Gauge,
+  ListChecks,
+  RefreshCw,
+  Shield,
+  Sparkles,
+  Headset,
+} from "lucide-react";
 import { PageContainer, SectionHeader } from "@/components/layout/page-container";
 
 const reasons = [
-  {
-    icon: BookOpenCheck,
-    title: "Realistic practice",
-    body: "Timed sittings that follow public skill outlines. Items are scenarios, not trivia flashcards.",
-  },
-  {
-    icon: ListChecks,
-    title: "Detailed explanations",
-    body: "Every question ships with a rationale so you can see why a near-miss option fails.",
-  },
-  {
-    icon: Gauge,
-    title: "Instant results",
-    body: "Submit and get a score, domain breakdown, and a review list without waiting on a PDF.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Updated questions",
-    body: "Authors refresh sets when vendor outlines change. You keep access to the latest published version.",
-  },
-  {
-    icon: Sparkles,
-    title: "Progress tracking",
-    body: "Retakes and attempt history live in your library so you can focus on weak domains.",
-  },
+  { icon: BookOpenCheck, title: "Free practice", body: "Twenty questions on every published exam, no payment required." },
+  { icon: ListChecks, title: "Detailed explanations", body: "Each item includes why the near-miss option fails." },
+  { icon: Gauge, title: "Realistic tests", body: "Timed sittings, flags, and a question grid that behaves like an exam." },
+  { icon: RefreshCw, title: "Updated content", body: "Authors refresh banks when public skill outlines change." },
+  { icon: Sparkles, title: "Progress tracking", body: "Scores and attempts live on your dashboard after you sign in." },
+  { icon: FileText, title: "Premium PDFs", body: "Downloadable study notes, authorized only after a verified purchase." },
+  { icon: Shield, title: "Secure payments", body: "Razorpay in INR with server-side signature verification." },
+  { icon: Headset, title: "Fast support", body: "Account and checkout help from the support desk." },
 ];
 
 export function WhyChooseUs() {
@@ -37,13 +29,13 @@ export function WhyChooseUs() {
           titleId="why-heading"
           eyebrow="Why PrepHarbor"
           title="Built for how professionals actually study"
-          description="The product is the loop: pick an exam, sit it under time, read the explanations, and come back to the domains you missed."
+          description="Free practice first. Premium when the first 20 are not enough."
         />
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {reasons.map((reason) => (
             <li
               key={reason.title}
-              className="rounded-2xl border bg-card p-5 transition-colors hover:border-primary/30 hover:bg-accent/40"
+              className="rounded-2xl border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
             >
               <reason.icon className="size-5 text-primary" aria-hidden="true" />
               <h3 className="mt-3 font-heading text-base font-semibold">{reason.title}</h3>

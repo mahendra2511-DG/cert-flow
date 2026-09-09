@@ -1,8 +1,10 @@
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { ExamWorkspace } from "@/components/exam/exam-workspace";
+import { LockedQuestion } from "@/components/exam/locked-question";
 import { findActiveAttempt, findExamContext, getSnapshot } from "@/lib/exam/engine";
+import { readActor } from "@/lib/auth/actor";
 import { createMetadata } from "@/lib/seo";
+import { findLivePracticeTest } from "@/lib/admin/catalog-store";
 
 export const metadata = createMetadata({
   title: "Practice test",
@@ -24,18 +26,17 @@ export default async function PracticeQuestionPage({
     notFound();
   }
 
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect(`/sign-in?callbackUrl=/practice-test/${vendor}/${exam}/question/${questionNumber}`);
+  const actor = await readActor();
+  if (!actor) {
+    redirect(`/practice-test/${vendor}/${exam}/free`);
   }
 
-  const attemptId =
-    attemptIdParam ?? (await findActiveAttempt(session.user.id, vendor, exam))?.id;
+  const attemptId = attemptIdParam ?? (await findActiveAttempt(actor.id, vendor, exam))?.id;
   if (!attemptId) {
-    redirect(`/practice-test/${vendor}/${exam}/start`);
+    redirect(`/practice-test/${vendor}/${exam}/free`);
   }
 
-  const snapshot = await getSnapshot(attemptId, session.user.id);
+  const snapshot = await getSnapshot(attemptId, actor.id);
   if (!snapshot) {
     notFound();
   }
@@ -49,6 +50,18 @@ export default async function PracticeQuestionPage({
   }
 
   const order = Number.parseInt(questionNumber, 10);
+  const catalog = findLivePracticeTest(snapshot.attempt.practiceTestId);
+  if ((snapshot.attempt.mode ?? "PREMIUM") === "FREE" && order > snapshot.questions.length) {
+    return (
+      <LockedQuestion
+        vendor={vendor}
+        exam={exam}
+        checkoutSlug={catalog?.test.slug ?? ""}
+        questionNumber={order}
+      />
+    );
+  }
+
   const safeOrder = snapshot.questions.some((item) => item.order === order)
     ? order
     : snapshot.questions[0]?.order ?? 1;

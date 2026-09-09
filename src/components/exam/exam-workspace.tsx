@@ -9,10 +9,12 @@ import { QuestionNav } from "@/components/exam/question-nav";
 import { QuestionRenderer } from "@/components/exam/question-renderer";
 import { SubmitConfirm } from "@/components/exam/submit-confirm";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { saveAnswerAction, submitAttemptAction, toggleFlagAction } from "@/lib/exam/actions";
 import { answeredCount } from "@/lib/exam/result-calculator";
 import type { ExamSnapshot } from "@/lib/exam/types";
-import { Flag } from "lucide-react";
+import { Flag, LayoutGrid } from "lucide-react";
 
 export function ExamWorkspace({
   vendor,
@@ -104,9 +106,36 @@ export function ExamWorkspace({
             <p className="text-xs text-muted-foreground">
               {snapshot.attempt.examCode} · {snapshot.attempt.examName}
             </p>
-            <ProgressTracker answered={answeredCount(answers)} total={total} />
+            <div className="mt-1 flex items-center gap-2">
+              <ProgressTracker answered={answeredCount(answers)} total={total} />
+              <Badge variant="secondary">{snapshot.attempt.mode === "FREE" ? "Free 20" : "Premium"}</Badge>
+            </div>
           </div>
-          <ExamTimer key={snapshot.attempt.id} remainingSeconds={snapshot.remainingSeconds} onExpire={onExpire} />
+          <div className="flex items-center gap-2">
+            <ExamTimer key={snapshot.attempt.id} remainingSeconds={snapshot.remainingSeconds} onExpire={onExpire} />
+            <Sheet>
+              <SheetTrigger
+                render={
+                  <Button variant="outline" size="icon" className="lg:hidden" aria-label="Question list" />
+                }
+              >
+                <LayoutGrid className="size-4" />
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Questions</SheetTitle>
+                </SheetHeader>
+                <div className="px-4 pb-6">
+                  <QuestionNav
+                    questions={snapshot.questions}
+                    answers={answers}
+                    currentOrder={question.order}
+                    hrefFor={questionHref}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
 
         <QuestionRenderer
@@ -140,7 +169,7 @@ export function ExamWorkspace({
         </div>
       </div>
 
-      <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+      <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block lg:self-start">
         <div className="rounded-2xl border bg-card p-4">
           <p className="mb-3 text-sm font-medium">Questions</p>
           <QuestionNav

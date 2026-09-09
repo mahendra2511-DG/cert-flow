@@ -87,9 +87,29 @@ export function ExamForm({ exam }: { exam?: LiveExam | null }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="level">Level</Label>
-            <Input id="level" name="level" defaultValue={exam?.level ?? "Associate"} />
+            <Label htmlFor="freeQuestionLimit">Free question limit</Label>
+            <Input
+              id="freeQuestionLimit"
+              name="freeQuestionLimit"
+              type="number"
+              min={1}
+              defaultValue={exam?.freeQuestionLimit ?? 20}
+            />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="premiumQuestionCount">Premium sitting size</Label>
+            <Input
+              id="premiumQuestionCount"
+              name="premiumQuestionCount"
+              type="number"
+              min={0}
+              defaultValue={exam?.premiumQuestionCount ?? test?.questionCount ?? 30}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="level">Level</Label>
+          <Input id="level" name="level" defaultValue={exam?.level ?? "Associate"} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="seoTitle">SEO title</Label>

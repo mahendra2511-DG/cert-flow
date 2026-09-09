@@ -123,22 +123,50 @@ export default async function ExamDetailPage({
 
           <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="rounded-xl border bg-card p-4">
-              <dt className="text-xs text-muted-foreground">Questions</dt>
-              <dd className="text-xl font-semibold">{detail.questionCount}</dd>
+              <dt className="text-xs text-muted-foreground">Free questions</dt>
+              <dd className="text-xl font-semibold">{detail.freeQuestionCount}</dd>
             </div>
             <div className="rounded-xl border bg-card p-4">
-              <dt className="text-xs text-muted-foreground">Practice tests</dt>
-              <dd className="text-xl font-semibold">{detail.practiceTestCount}</dd>
+              <dt className="text-xs text-muted-foreground">Premium questions</dt>
+              <dd className="text-xl font-semibold">{detail.premiumQuestionCount}</dd>
             </div>
             <div className="rounded-xl border bg-card p-4">
               <dt className="text-xs text-muted-foreground">Duration</dt>
               <dd className="text-xl font-semibold">{detail.durationMin} min</dd>
             </div>
             <div className="rounded-xl border bg-card p-4">
-              <dt className="text-xs text-muted-foreground">From</dt>
+              <dt className="text-xs text-muted-foreground">Premium from</dt>
               <dd className="text-xl font-semibold">{formatInrFromPaise(detail.pricePaise)}</dd>
             </div>
           </dl>
+
+          <section className="mt-12" aria-labelledby="compare-heading">
+            <h2 id="compare-heading" className="text-2xl font-semibold">
+              Free vs premium
+            </h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border bg-card p-5">
+                <p className="text-sm font-medium text-primary">Free</p>
+                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <li>{detail.freeQuestionCount} questions</li>
+                  <li>Basic practice</li>
+                  <li>Answer review</li>
+                  <li>Basic explanations after submit</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
+                <p className="text-sm font-medium text-primary">Premium</p>
+                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <li>Full question bank</li>
+                  <li>All premium questions</li>
+                  <li>Premium practice tests</li>
+                  <li>Detailed explanations</li>
+                  <li>PDF download</li>
+                  <li>Progress tracking and retakes</li>
+                </ul>
+              </div>
+            </div>
+          </section>
 
           <section className="mt-12" aria-labelledby="audience-heading">
             <h2 id="audience-heading" className="text-2xl font-semibold">
@@ -225,25 +253,39 @@ export default async function ExamDetailPage({
           </section>
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        <aside className="lg:sticky lg:top-24 lg:self-start space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Purchase access</CardTitle>
-              <CardDescription>
-                Unlock the online exam, retakes, and explanation review.
-              </CardDescription>
+              <CardTitle>Start 20 free questions</CardTitle>
+              <CardDescription>No payment required. Question 21+ stays locked until you upgrade.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                nativeButton={false}
+                className="w-full"
+                render={<Link href={`/practice-test/${detail.vendorSlug}/${detail.examSlug}/free` as Route} />}
+              >
+                Start 20 free questions
+              </Button>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/30">
+            <CardHeader>
+              <CardTitle>Premium practice package</CardTitle>
+              <CardDescription>Unlock all available questions and study material.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-3xl font-semibold">{formatInrFromPaise(detail.pricePaise)}</p>
+              <Button nativeButton={false} render={<Link href={checkoutHref} />} className="w-full">
+                Buy now
+              </Button>
               <Button
                 nativeButton={false}
-                render={<Link href={practiceHref} />}
+                render={<Link href={`/practice-test/${detail.vendorSlug}/${detail.examSlug}/premium` as Route} />}
+                variant="outline"
                 className="w-full"
               >
-                Start / view practice test
-              </Button>
-              <Button nativeButton={false} render={<Link href={checkoutHref} />} variant="outline" className="w-full">
-                Continue to checkout
+                Unlock premium
               </Button>
             </CardContent>
           </Card>

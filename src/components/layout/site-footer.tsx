@@ -2,13 +2,15 @@ import Link from "next/link";
 import type { Route } from "next";
 import { BrandWordmark, LogoMark } from "@/components/brand/logo";
 import { Separator } from "@/components/ui/separator";
+import { route } from "@/lib/routes";
 
 const footerGroups = [
   {
-    title: "About",
+    title: "Platform",
     links: [
-      { href: "/about", label: "About PrepHarbor" },
-      { href: "/contact", label: "Contact" },
+      { href: "/certifications", label: "Catalog" },
+      { href: "/free-questions", label: "Free questions" },
+      { href: "/premium-tests", label: "Premium tests" },
       { href: "/#how-it-works", label: "How it works" },
     ],
   },
@@ -16,9 +18,9 @@ const footerGroups = [
     title: "Certifications",
     links: [
       { href: "/certifications", label: "All certifications" },
-      { href: "/practice-tests", label: "Practice tests" },
-      { href: "/certifications?category=azure", label: "Azure" },
+      { href: "/certifications/microsoft", label: "Microsoft" },
       { href: "/certifications/aws", label: "AWS" },
+      { href: "/practice-tests", label: "Practice tests" },
     ],
   },
   {
@@ -33,8 +35,17 @@ const footerGroups = [
     title: "Support",
     links: [
       { href: "/support", label: "Help center" },
+      { href: "/contact", label: "Contact" },
       { href: "/sign-in", label: "Log in" },
-      { href: "/sign-up", label: "Sign up" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { href: "/about", label: "About" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms" },
+      { href: "/refund", label: "Refund Policy" },
     ],
   },
 ] as const;
@@ -42,15 +53,14 @@ const footerGroups = [
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t bg-muted/40">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-3 lg:col-span-1">
           <Link href="/" className="inline-flex items-center gap-2">
             <LogoMark className="size-7" />
             <BrandWordmark />
           </Link>
           <p className="max-w-xs text-sm text-muted-foreground">
-            Original practice tests for professional certifications. Independent of every exam
-            vendor.
+            Original practice tests for professional certifications. Independent of every exam vendor.
           </p>
         </div>
         {footerGroups.map((group) => (
@@ -80,6 +90,9 @@ export function SiteFooter() {
           </Link>
           <Link href="/terms" className="hover:text-foreground">
             Terms
+          </Link>
+          <Link href={route("/refund")} className="hover:text-foreground">
+            Refunds
           </Link>
           <Link href="/contact" className="hover:text-foreground">
             Contact

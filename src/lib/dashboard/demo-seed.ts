@@ -63,6 +63,7 @@ function buildAttempt(input: {
     examSlug: input.examSlug,
     examCode: input.examCode,
     examName: input.examName,
+    mode: "PREMIUM",
     timeLimitMin: input.timeLimitMin,
     passingScore: input.passingScore,
     status: "SUBMITTED",

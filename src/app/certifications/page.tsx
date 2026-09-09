@@ -5,7 +5,9 @@ import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 import { EmptyState } from "@/components/ui-patterns/empty-state";
 import { PageContainer } from "@/components/layout/page-container";
 import { JsonLd } from "@/components/seo/json-ld";
+import { CertificationSelector } from "@/components/catalog/certification-selector";
 import { listExams, listFilterCategories, listVendors } from "@/lib/catalog/repository";
+import { getPublicExams } from "@/lib/admin/catalog-store";
 import { catalogHref, parseCatalogSearch } from "@/lib/catalog/search-params";
 import { createMetadata } from "@/lib/seo";
 import { itemListJsonLd } from "@/lib/seo/structured-data";
@@ -83,6 +85,19 @@ export default async function CertificationsPage({
         Independent practice tests grouped by provider. Filter the catalog, then open an exam for
         the outline, timing, and purchase path. These sittings do not replace a vendor credential.
       </p>
+      <div className="mt-8">
+        <CertificationSelector
+          vendors={vendors.map((item) => ({ slug: item.slug, name: item.name }))}
+          exams={getPublicExams().map((item) => ({
+            vendorSlug: item.vendorSlug,
+            slug: item.slug,
+            code: item.code,
+            name: item.name,
+          }))}
+          intent="exam"
+          cta="View exam"
+        />
+      </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside>

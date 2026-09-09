@@ -7,6 +7,7 @@ import {
   BookOpen,
   ClipboardList,
   FileQuestion,
+  FileText,
   LayoutDashboard,
   Library,
   Receipt,
@@ -20,6 +21,7 @@ export const adminNav = [
   { href: "/admin/exams", label: "Exams", icon: Library },
   { href: "/admin/tests", label: "Tests", icon: ClipboardList },
   { href: "/admin/questions", label: "Questions", icon: FileQuestion },
+  { href: "/admin/pdfs", label: "PDFs", icon: FileText },
   { href: "/admin/orders", label: "Orders", icon: Receipt },
   { href: "/admin/users", label: "Users", icon: Users },
 ] as const;

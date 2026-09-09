@@ -1,26 +1,10 @@
 import { PageContainer, SectionHeader } from "@/components/layout/page-container";
 
 const steps = [
-  {
-    n: "01",
-    title: "Choose an exam",
-    body: "Search the catalog by vendor or code. Open a certification to compare available practice tests.",
-  },
-  {
-    n: "02",
-    title: "Purchase access",
-    body: "Pay once in INR. Access unlocks the online exam, retakes, and explanation review.",
-  },
-  {
-    n: "03",
-    title: "Practice under time",
-    body: "Sit the test in the browser. Flag items, move between questions, and submit when you are ready.",
-  },
-  {
-    n: "04",
-    title: "Track progress",
-    body: "Scores and missed questions land in your library so the next sitting is more focused.",
-  },
+  { n: "01", title: "Choose your certification", body: "Pick a provider, then the exam you are actually sitting." },
+  { n: "02", title: "Practice 20 free questions", body: "Start immediately. The free limit is enforced on the server." },
+  { n: "03", title: "Upgrade when you need more", body: "Unlock the remaining bank, premium sittings, and the study PDF." },
+  { n: "04", title: "Prepare and pass with confidence", body: "Retake weak domains with explanations and a score history." },
 ];
 
 export function HowItWorks() {
@@ -31,11 +15,11 @@ export function HowItWorks() {
           titleId="how-heading"
           eyebrow="Workflow"
           title="How it works"
-          description="Four steps from catalog to review. No classroom enrollment, no shipping a workbook."
+          description="Four steps from catalog to premium review. No classroom enrollment."
         />
         <ol className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((step) => (
-            <li key={step.n} className="rounded-2xl border bg-card p-5">
+            <li key={step.n} className="rounded-2xl border bg-card p-5 shadow-sm">
               <p className="font-mono text-xs font-medium tracking-widest text-primary">{step.n}</p>
               <h3 className="mt-3 font-heading text-lg font-semibold">{step.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>

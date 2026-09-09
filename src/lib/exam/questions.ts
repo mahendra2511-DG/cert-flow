@@ -1,5 +1,6 @@
 import type { ExamQuestion } from "@/lib/exam/types";
 import { seedExams } from "@/lib/catalog/seed-catalog";
+import { ab100Questions } from "@/lib/exam/banks/ab-100";
 
 function option(
   testSlug: string,
@@ -358,7 +359,7 @@ const authoredBanks: Record<string, ExamQuestion[]> = {
 };
 
 function generatedBank(testSlug: string, examName: string, examCode: string): ExamQuestion[] {
-  return [
+  const core: ExamQuestion[] = [
     single(
       testSlug,
       1,
@@ -456,15 +457,65 @@ function generatedBank(testSlug: string, examName: string, examCode: string): Ex
       ],
     ),
   ];
+
+  const extras: ExamQuestion[] = [];
+  for (let order = 9; order <= 30; order += 1) {
+    extras.push(
+      single(
+        testSlug,
+        order,
+        `Demo item ${order} for ${examCode}: a change must be reversible within one hour. What should you require?`,
+        "A documented rollback plus a timed rehearsal beats hoping the change is perfect.",
+        [
+          [`Skip rollback because ${examName} never fails`, false],
+          ["A tested rollback path and a change window", true],
+          ["Delete backups first to save space", false],
+          ["Apply the change in production with no ticket", false],
+        ],
+      ),
+    );
+  }
+  return [...core, ...extras];
+}
+
+export function padBank(
+  questions: ExamQuestion[],
+  testSlug: string,
+  examName: string,
+  examCode: string,
+  min = 30,
+): ExamQuestion[] {
+  if (questions.length >= min) {
+    return questions.map((question, index) => ({ ...question, order: index + 1 }));
+  }
+  const generated = generatedBank(testSlug, examName, examCode);
+  const seen = new Set(questions.map((item) => item.id));
+  const extra = generated
+    .filter((item) => !seen.has(item.id))
+    .map((item, index) => ({
+      ...item,
+      id: `${testSlug}-pad-${index + 1}`,
+      order: questions.length + index + 1,
+      options: item.options.map((option) => ({
+        ...option,
+        id: `${testSlug}-pad-${index + 1}-${option.label}`,
+      })),
+    }));
+  return [...questions, ...extra].slice(0, min).map((question, index) => ({ ...question, order: index + 1 }));
 }
 
 export function getBaseQuestionsForTest(testSlug: string): ExamQuestion[] {
-  if (authoredBanks[testSlug]) {
-    return authoredBanks[testSlug];
+  if (testSlug === "ab-100-ai-drill") {
+    return ab100Questions();
   }
   const exam = seedExams.find((item) => item.tests.some((test) => test.slug === testSlug));
   const test = exam?.tests.find((item) => item.slug === testSlug);
-  return generatedBank(testSlug, exam?.name ?? "this certification", exam?.code ?? test?.title ?? "exam");
+  const name = exam?.name ?? "this certification";
+  const code = exam?.code ?? test?.title ?? "exam";
+  if (authoredBanks[testSlug]) {
+    return padBank(authoredBanks[testSlug], testSlug, name, code);
+  }
+  return generatedBank(testSlug, name, code);
 }
 
 export function getQuestionsForTest(testSlug: string): ExamQuestion[] {

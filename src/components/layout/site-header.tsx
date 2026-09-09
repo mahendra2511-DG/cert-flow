@@ -21,6 +21,9 @@ import { route } from "@/lib/routes";
 export const primaryNav = [
   { href: "/certifications", label: "Certifications" },
   { href: "/practice-tests", label: "Practice Tests" },
+  { href: "/free-questions", label: "Free Questions" },
+  { href: "/premium-tests", label: "Premium Tests" },
+  { href: "/resources", label: "Resources" },
 ] as const;
 
 export function SiteHeader() {
@@ -42,7 +45,7 @@ export function SiteHeader() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={route(item.href)}
                 className={cn(
                   "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   active
@@ -72,6 +75,9 @@ export function SiteHeader() {
               ) : null}
               <Button nativeButton={false} render={<Link href={route("/dashboard")} />} variant="ghost">
                 Dashboard
+              </Button>
+              <Button nativeButton={false} render={<Link href={route("/dashboard/profile")} />} variant="ghost" className="hidden sm:inline-flex">
+                Profile
               </Button>
               <Button
                 type="button"

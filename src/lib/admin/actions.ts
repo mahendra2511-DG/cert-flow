@@ -75,6 +75,8 @@ export async function saveExamAction(formData: FormData) {
     seoDescription: str(formData, "seoDescription"),
     isPublished: bool(formData, "isPublished"),
     level: str(formData, "level"),
+    freeQuestionLimit: Number(str(formData, "freeQuestionLimit") || 20),
+    premiumQuestionCount: Number(str(formData, "premiumQuestionCount") || 0) || undefined,
   });
   redirect(route("/admin/exams"));
 }

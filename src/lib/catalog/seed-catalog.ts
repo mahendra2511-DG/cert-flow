@@ -5,6 +5,9 @@ export type SeedVendor = {
   name: string;
   description: string;
   longDescription: string;
+  initials?: string;
+  accent?: string;
+  featured?: boolean;
 };
 
 export type SeedCategory = {
@@ -48,6 +51,9 @@ export type SeedExam = {
   outcomes: string[];
   faqs: CatalogFaq[];
   tests: SeedPracticeTest[];
+  freeQuestionLimit?: number;
+  premiumQuestionCount?: number;
+  featured?: boolean;
 };
 
 export const seedVendors: SeedVendor[] = [
@@ -55,6 +61,9 @@ export const seedVendors: SeedVendor[] = [
     slug: "microsoft",
     name: "Microsoft",
     description: "Azure, identity, and Microsoft 365 certification tracks.",
+    initials: "MS",
+    accent: "from-indigo-100 to-white",
+    featured: true,
     longDescription:
       "PrepHarbor’s Microsoft catalog covers Azure fundamentals and administration plus Microsoft 365 literacy. Practice items are original scenarios written against publicly documented skill areas—not vendor exam dumps.",
   },
@@ -62,6 +71,9 @@ export const seedVendors: SeedVendor[] = [
     slug: "aws",
     name: "AWS",
     description: "Architecture, operations, and cloud practitioner paths.",
+    initials: "AWS",
+    accent: "from-amber-100 to-white",
+    featured: true,
     longDescription:
       "Amazon Web Services practice on PrepHarbor focuses on well-architected decisions, billing literacy, and operational trade-offs. Sit a timed test, then review why a cheaper or more available option wins.",
   },
@@ -69,6 +81,9 @@ export const seedVendors: SeedVendor[] = [
     slug: "google-cloud",
     name: "Google Cloud",
     description: "Engineer and operations tracks on Google Cloud.",
+    initials: "GC",
+    accent: "from-emerald-100 to-white",
+    featured: true,
     longDescription:
       "Google Cloud practice here emphasizes IAM, compute, Kubernetes basics, and operations. Explanations call out the product that actually fits the constraint in the prompt.",
   },
@@ -76,6 +91,9 @@ export const seedVendors: SeedVendor[] = [
     slug: "cisco",
     name: "Cisco",
     description: "Campus networking and enterprise infrastructure exams.",
+    initials: "CS",
+    accent: "from-sky-100 to-white",
+    featured: true,
     longDescription:
       "Cisco practice on PrepHarbor is built around campus forwarding, wireless, and automation basics. Items ask for a next hop or protocol choice, then explain the near-miss.",
   },
@@ -83,6 +101,9 @@ export const seedVendors: SeedVendor[] = [
     slug: "comptia",
     name: "CompTIA",
     description: "Vendor-neutral security, networking, and operations.",
+    initials: "CT",
+    accent: "from-rose-100 to-white",
+    featured: true,
     longDescription:
       "CompTIA tracks on PrepHarbor stay vendor-neutral. Security+ and Network+ sets check whether you can pick a control or a troubleshooting step, not recite a glossary.",
   },
@@ -90,8 +111,74 @@ export const seedVendors: SeedVendor[] = [
     slug: "cloud-native",
     name: "Cloud Native",
     description: "Kubernetes and platform engineering credentials.",
+    initials: "CN",
+    accent: "from-violet-100 to-white",
+    featured: false,
     longDescription:
       "Cloud Native practice currently centers on Certified Kubernetes Administrator concepts: scheduling, networking, and recovery. It is conceptual prep to sit beside a hands-on lab day.",
+  },
+  {
+    slug: "vmware",
+    name: "VMware",
+    initials: "VM",
+    accent: "from-slate-100 to-white",
+    featured: true,
+    description: "Virtualization and cloud operations tracks.",
+    longDescription: "VMware-oriented practice on PrepHarbor stays conceptual and original.",
+  },
+  {
+    slug: "oracle",
+    name: "Oracle",
+    initials: "OR",
+    accent: "from-red-100 to-white",
+    featured: true,
+    description: "Database and cloud infrastructure literacy.",
+    longDescription: "Oracle catalog placeholders for upcoming original practice sets.",
+  },
+  {
+    slug: "salesforce",
+    name: "Salesforce",
+    initials: "SF",
+    accent: "from-cyan-100 to-white",
+    featured: true,
+    description: "CRM administration and platform fundamentals.",
+    longDescription: "Salesforce practice is listed so learners can watch for upcoming original banks.",
+  },
+  {
+    slug: "servicenow",
+    name: "ServiceNow",
+    initials: "SN",
+    accent: "from-green-100 to-white",
+    featured: true,
+    description: "Workflow and ITSM platform credentials.",
+    longDescription: "ServiceNow exams will publish as original scenario banks, not dumps.",
+  },
+  {
+    slug: "adobe",
+    name: "Adobe",
+    initials: "AD",
+    accent: "from-pink-100 to-white",
+    featured: false,
+    description: "Experience Cloud and document services literacy.",
+    longDescription: "Adobe listings are placeholders until original items ship.",
+  },
+  {
+    slug: "fortinet",
+    name: "Fortinet",
+    initials: "FT",
+    accent: "from-orange-100 to-white",
+    featured: true,
+    description: "Network security operations practice.",
+    longDescription: "Fortinet-oriented conceptual prep with original scenarios.",
+  },
+  {
+    slug: "palo-alto",
+    name: "Palo Alto Networks",
+    initials: "PA",
+    accent: "from-amber-100 to-white",
+    featured: true,
+    description: "Firewall and threat-prevention fundamentals.",
+    longDescription: "Palo Alto Networks practice will remain original to PrepHarbor.",
   },
 ];
 
@@ -219,6 +306,52 @@ export const seedExams: SeedExam[] = [
         pricePaise: 79900,
         ratingAverage: 4.6,
         ratingCount: 268,
+        isPopular: true,
+      },
+    ],
+    freeQuestionLimit: 20,
+    featured: true,
+  },
+  {
+    slug: "ab-100",
+    vendorSlug: "microsoft",
+    categorySlugs: ["azure", "microsoft", "fundamentals"],
+    code: "AB-100",
+    name: "Azure AI Fundamentals Practice",
+    summary: "Responsible AI concepts, Azure AI services, and original scenario practice.",
+    description:
+      "Original PrepHarbor items for people exploring Azure AI literacy. Prompts are fictional workplace scenarios—not vendor exam dumps. The first 20 questions are free; premium unlocks the remaining bank and a downloadable study PDF.",
+    level: "Fundamentals",
+    durationMin: 45,
+    passingScore: 70,
+    language: "English",
+    examFormat: "Multiple choice, single and multiple response",
+    isPopular: true,
+    featured: true,
+    freeQuestionLimit: 20,
+    premiumQuestionCount: 30,
+    seoTitle: "AB-100 Azure AI Fundamentals practice test",
+    seoDescription:
+      "Practice AB-100 with 20 free PrepHarbor questions, then unlock the full bank, explanations, and premium PDF.",
+    outcomes: [
+      "Describe responsible AI principles in workplace scenarios",
+      "Choose an Azure AI service that fits a constraint",
+      "Spot data, privacy, and human-in-the-loop requirements",
+    ],
+    faqs: sharedExamFaqs,
+    tests: [
+      {
+        slug: "ab-100-ai-drill",
+        title: "AB-100 AI Concepts Drill",
+        summary: "Thirty original items across responsible AI and Azure AI services.",
+        description:
+          "Twenty questions are free. Premium unlocks the remaining bank, retakes, explanations, and a study PDF.",
+        questionCount: 30,
+        timeLimitMin: 45,
+        passingScore: 70,
+        pricePaise: 89900,
+        ratingAverage: 4.7,
+        ratingCount: 142,
         isPopular: true,
       },
     ],
@@ -595,14 +728,14 @@ export const seedExams: SeedExam[] = [
 export const seedTestimonials: CatalogTestimonial[] = [
   {
     quote:
-      "The timer and explanation review changed how I studied. I stopped guessing and started writing down why the wrong options failed.",
+      "The free 20 let me see if the explanations actually taught something. After I upgraded, the PDF and retakes lived next to the timed sitting.",
     name: "Ananya R.",
     role: "Cloud engineer, Bengaluru",
-    exam: "SAA-C03",
+    exam: "AB-100",
   },
   {
     quote:
-      "I wanted original practice, not a recycled dump. PrepHarbor’s Azure set felt like work scenarios I actually see on the job.",
+      "I wanted original practice, not a recycled dump. The Azure set felt like work scenarios I actually see on the job.",
     name: "Marcus L.",
     role: "Systems administrator, Pune",
     exam: "AZ-104",
@@ -618,29 +751,44 @@ export const seedTestimonials: CatalogTestimonial[] = [
 
 export const seedSiteFaqs: CatalogFaq[] = [
   {
-    question: "Are these the official vendor exams?",
+    question: "How many questions are free?",
     answer:
-      "No. PrepHarbor sells independent practice tests written for study. We are not affiliated with Microsoft, Amazon, Google, Cisco, CompTIA, or the Cloud Native Computing Foundation.",
+      "Every published exam includes the first 20 practice questions at no charge. The free limit is configurable in admin but defaults to 20.",
   },
   {
-    question: "What do I receive after purchase?",
+    question: "What happens after the first 20 questions?",
     answer:
-      "Access to the online exam, retakes, a score report, and per-question explanations. Tests are taken in the browser—no PDF dump is required.",
+      "Question 21 and beyond stay locked until you purchase premium access for that exam. The server never sends locked prompts, options, or answers to the browser.",
   },
   {
-    question: "How are questions kept current?",
+    question: "Can I download the PDF for free?",
     answer:
-      "Authors refresh items when public skill outlines change. Each test shows a last-updated note once the database-backed catalog is live.",
+      "No. The premium PDF is authorized only after a verified purchase. Unpaid visitors see an unlock prompt instead of a file URL.",
   },
   {
-    question: "Can I pay in Indian rupees?",
+    question: "What do I get after purchasing?",
     answer:
-      "Yes. Checkout uses Razorpay for INR payments. UPI, cards, and net banking are available once Razorpay keys are configured.",
+      "Premium unlocks the remaining question bank, timed premium sittings, explanation review, progress on your dashboard, and the downloadable study PDF for that exam.",
   },
   {
-    question: "Do you offer a pass guarantee?",
+    question: "How does payment work?",
     answer:
-      "We do not promise a vendor pass. Practice quality is the product: timed sittings, explanations, and progress you can review.",
+      "Checkout uses Razorpay in INR. The server creates the order and verifies the payment signature before access is granted. Never trust a client-side payment status.",
+  },
+  {
+    question: "Can I retake a practice test?",
+    answer:
+      "Yes. Free sittings can be restarted. Premium purchases include additional timed attempts on the full bank.",
+  },
+  {
+    question: "Do I get access on mobile?",
+    answer:
+      "Yes. The practice UI is built for phones and desktops. On small screens the question grid opens as a drawer; the timer stays visible.",
+  },
+  {
+    question: "How long does premium access last?",
+    answer:
+      "Unless an admin configures a shorter window, premium access is treated as lifetime for that exam on your account after a successful payment.",
   },
 ];
 
