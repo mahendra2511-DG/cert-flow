@@ -320,6 +320,10 @@ export function getLiveQuestions(testSlug: string): LiveQuestion[] {
   if (cached) {
     return cached.map((question, index) => normalizeQuestion(question, testSlug, index));
   }
+  const seeded = seedExams.some((exam) => exam.tests.some((test) => test.slug === testSlug));
+  if (!seeded) {
+    return [];
+  }
   return getBaseQuestionsForTest(testSlug).map((question, index) =>
     normalizeQuestion(question, testSlug, index),
   );
@@ -452,6 +456,7 @@ export function saveExam(input: {
       test.pricePaise = input.pricePaise;
       test.timeLimitMin = input.durationMin;
       test.questionCount = input.questionCount;
+      test.isPublished = input.isPublished;
     } else {
       current.tests.push({
         slug: `${slug}-practice`,
