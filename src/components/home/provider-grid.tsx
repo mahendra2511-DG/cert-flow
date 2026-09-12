@@ -12,6 +12,7 @@ export type ProviderCardData = {
   description: string;
   examCount: number;
   initials?: string;
+  logo?: string;
 };
 
 export function ProviderGrid({ providers }: { providers: ProviderCardData[] }) {
@@ -22,7 +23,7 @@ export function ProviderGrid({ providers }: { providers: ProviderCardData[] }) {
           titleId="providers-heading"
           eyebrow="Providers"
           title="Practice by certification provider"
-          description="Open a provider to see every published exam. Logos are stylized marks, not official vendor assets."
+          description="Open a provider to see every published exam. Vendor names and logos are shown to identify the exam topic only; Certiva is independent and not affiliated with or endorsed by these companies."
           action={
             <Link href="/certifications" className="text-sm font-medium text-primary hover:underline">
               All certifications
@@ -41,7 +42,12 @@ export function ProviderGrid({ providers }: { providers: ProviderCardData[] }) {
             {providers.map((provider) => (
               <li key={provider.slug}>
                 <article className="flex h-full flex-col rounded-2xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
-                  <ProviderMark slug={provider.slug} name={provider.name} initials={provider.initials} />
+                  <ProviderMark
+                    slug={provider.slug}
+                    name={provider.name}
+                    initials={provider.initials}
+                    logo={provider.logo}
+                  />
                   <h3 className="mt-4 font-heading text-lg font-semibold">{provider.name}</h3>
                   <p className="mt-2 flex-1 text-sm text-muted-foreground">{provider.description}</p>
                   <p className="mt-3 text-xs text-muted-foreground">

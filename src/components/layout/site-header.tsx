@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { Route } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { Menu } from "lucide-react";
-import { BrandWordmark, LogoMark } from "@/components/brand/logo";
+import { BrandLogo } from "@/components/brand/logo";
 import { CatalogSearch } from "@/components/catalog/search-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,8 +35,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Certiva home">
-          <LogoMark />
-          <BrandWordmark />
+          <BrandLogo />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">

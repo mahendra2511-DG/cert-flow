@@ -8,6 +8,7 @@ export type SeedVendor = {
   initials?: string;
   accent?: string;
   featured?: boolean;
+  logo?: string;
 };
 
 export type SeedCategory = {
@@ -63,6 +64,7 @@ export const seedVendors: SeedVendor[] = [
     description: "Azure, identity, and Microsoft 365 certification tracks.",
     initials: "MS",
     accent: "from-indigo-100 to-white",
+    logo: "/logos/microsoft.png",
     featured: true,
     longDescription:
       "Certiva’s Microsoft catalog covers Azure fundamentals and administration plus Microsoft 365 literacy. Practice items are original scenarios written against publicly documented skill areas—not vendor exam dumps.",
@@ -73,6 +75,7 @@ export const seedVendors: SeedVendor[] = [
     description: "Architecture, operations, and cloud practitioner paths.",
     initials: "AWS",
     accent: "from-amber-100 to-white",
+    logo: "/logos/aws.png",
     featured: true,
     longDescription:
       "Amazon Web Services practice on Certiva focuses on well-architected decisions, billing literacy, and operational trade-offs. Sit a timed test, then review why a cheaper or more available option wins.",
@@ -83,6 +86,7 @@ export const seedVendors: SeedVendor[] = [
     description: "Engineer and operations tracks on Google Cloud.",
     initials: "GC",
     accent: "from-emerald-100 to-white",
+    logo: "/logos/google-cloud.png",
     featured: true,
     longDescription:
       "Google Cloud practice here emphasizes IAM, compute, Kubernetes basics, and operations. Explanations call out the product that actually fits the constraint in the prompt.",
@@ -93,6 +97,7 @@ export const seedVendors: SeedVendor[] = [
     description: "Campus networking and enterprise infrastructure exams.",
     initials: "CS",
     accent: "from-sky-100 to-white",
+    logo: "/logos/cisco.png",
     featured: true,
     longDescription:
       "Cisco practice on Certiva is built around campus forwarding, wireless, and automation basics. Items ask for a next hop or protocol choice, then explain the near-miss.",
@@ -103,9 +108,43 @@ export const seedVendors: SeedVendor[] = [
     description: "Vendor-neutral security, networking, and operations.",
     initials: "CT",
     accent: "from-rose-100 to-white",
+    logo: "/logos/comptia.png",
     featured: true,
     longDescription:
       "CompTIA tracks on Certiva stay vendor-neutral. Security+ and Network+ sets check whether you can pick a control or a troubleshooting step, not recite a glossary.",
+  },
+  {
+    slug: "snowflake",
+    name: "Snowflake",
+    description: "Data cloud, warehousing, and SnowPro practice tracks.",
+    initials: "SF",
+    accent: "from-sky-100 to-white",
+    logo: "/logos/snowflake.png",
+    featured: true,
+    longDescription:
+      "Snowflake practice on Certiva covers core data-cloud concepts: warehouses, roles, and query performance. Original scenarios, not vendor exam dumps.",
+  },
+  {
+    slug: "anthropic",
+    name: "Anthropic",
+    description: "Applied AI and Claude platform literacy tracks.",
+    initials: "AN",
+    accent: "from-orange-100 to-white",
+    logo: "/logos/anthropic.png",
+    featured: true,
+    longDescription:
+      "Anthropic-track practice on Certiva focuses on applied AI concepts and working with the Claude platform. Original scenarios written for study, not an official certification.",
+  },
+  {
+    slug: "databricks",
+    name: "Databricks",
+    description: "Lakehouse, Spark, and data engineering tracks.",
+    initials: "DB",
+    accent: "from-red-100 to-white",
+    logo: "/logos/databricks.png",
+    featured: true,
+    longDescription:
+      "Databricks practice on Certiva centers on lakehouse architecture, Spark fundamentals, and data engineering workflows. Original scenarios, not vendor exam dumps.",
   },
   {
     slug: "cloud-native",
@@ -122,6 +161,7 @@ export const seedVendors: SeedVendor[] = [
     name: "VMware",
     initials: "VM",
     accent: "from-slate-100 to-white",
+    logo: "/logos/vmware.png",
     featured: true,
     description: "Virtualization and cloud operations tracks.",
     longDescription: "VMware-oriented practice on Certiva stays conceptual and original.",
@@ -131,6 +171,7 @@ export const seedVendors: SeedVendor[] = [
     name: "Oracle",
     initials: "OR",
     accent: "from-red-100 to-white",
+    logo: "/logos/oracle.png",
     featured: true,
     description: "Database and cloud infrastructure literacy.",
     longDescription: "Oracle catalog placeholders for upcoming original practice sets.",
@@ -140,6 +181,7 @@ export const seedVendors: SeedVendor[] = [
     name: "Salesforce",
     initials: "SF",
     accent: "from-cyan-100 to-white",
+    logo: "/logos/salesforce.png",
     featured: true,
     description: "CRM administration and platform fundamentals.",
     longDescription: "Salesforce practice is listed so learners can watch for upcoming original banks.",
@@ -149,6 +191,7 @@ export const seedVendors: SeedVendor[] = [
     name: "ServiceNow",
     initials: "SN",
     accent: "from-green-100 to-white",
+    logo: "/logos/servicenow.png",
     featured: true,
     description: "Workflow and ITSM platform credentials.",
     longDescription: "ServiceNow exams will publish as original scenario banks, not dumps.",
@@ -167,6 +210,7 @@ export const seedVendors: SeedVendor[] = [
     name: "Fortinet",
     initials: "FT",
     accent: "from-orange-100 to-white",
+    logo: "/logos/fortinet.png",
     featured: true,
     description: "Network security operations practice.",
     longDescription: "Fortinet-oriented conceptual prep with original scenarios.",
@@ -176,6 +220,7 @@ export const seedVendors: SeedVendor[] = [
     name: "Palo Alto Networks",
     initials: "PA",
     accent: "from-amber-100 to-white",
+    logo: "/logos/palo-alto.png",
     featured: true,
     description: "Firewall and threat-prevention fundamentals.",
     longDescription: "Palo Alto Networks practice will remain original to Certiva.",

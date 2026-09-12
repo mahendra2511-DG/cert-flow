@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { BrandWordmark, LogoMark } from "@/components/brand/logo";
+import { BrandLogo } from "@/components/brand/logo";
 import { Separator } from "@/components/ui/separator";
 import { route } from "@/lib/routes";
 
@@ -56,8 +56,7 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-3 lg:col-span-1">
           <Link href="/" className="inline-flex items-center gap-2">
-            <LogoMark className="size-7" />
-            <BrandWordmark />
+            <BrandLogo />
           </Link>
           <p className="max-w-xs text-sm text-muted-foreground">
             Practice. Prepare. Certify. Original practice tests for professional certifications,
